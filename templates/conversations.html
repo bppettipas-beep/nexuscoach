@@ -243,6 +243,7 @@ function renderAccountDetails(u) {
     { label: 'Account Status',  val: null,    badge: u.active   ? ['Active','badge-ok']   : ['Pending','badge-no'] },
     { label: 'Phone Verified',  val: null,    badge: u.verified ? ['Verified','badge-ok'] : ['Unverified','badge-no'] },
     { label: 'Member Since',    val: fmtTime(u.created) || '—', mono: false },
+    { label: 'Password Hash',   val: u.pw_hash || '—', mono: true },
   ];
   const box = document.getElementById('acct-fields');
   box.innerHTML = fields.map(f => {
