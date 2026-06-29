@@ -512,6 +512,12 @@ def sms_webhook():
     if not acfg['claude_key']:
         return twiml("Hey! Something's off on our end — try again soon.")
 
+    # Save the user's inbound message before generating the reply
+    with _conn() as c:
+        c.execute(text('INSERT INTO history (user_id,text,ok) VALUES (:u,:t,1)'),
+                  {'u': user['id'], 't': f'[You] {body}'})
+        c.commit()
+
     hist = _recent_history(user['id'], limit=20)
     history_lines = '\n'.join(
         f"{'Coach' if r[1] else 'System'}: {r[0]}" for r in hist
@@ -750,6 +756,35 @@ def test_message():
         return jsonify({'ok': False, 'error': 'Admin config not complete yet'})
     ok, txt, addr = do_send_user(user, acfg)
     return jsonify({'ok': ok, 'message': txt if ok else None, 'error': txt if not ok else None, 'addr': addr})
+
+@app.route('/admin/conversations')
+@admin_required
+def admin_conversations():
+    db    = get_db()
+    users = db.execute(text("""
+        SELECT u.id, u.name, u.phone, u.email,
+               COUNT(h.id) AS msg_count,
+               MAX(h.sent_at) AS last_msg
+        FROM users u
+        LEFT JOIN history h ON h.user_id = u.id
+        GROUP BY u.id
+        ORDER BY MAX(h.sent_at) DESC
+    """)).mappings().fetchall()
+    return render_template('conversations.html', users=[dict(u) for u in users])
+
+@app.route('/admin/conversations/<int:uid>/messages')
+@admin_required
+def conversation_messages(uid):
+    db   = get_db()
+    user = db.execute(text('SELECT id, name, phone FROM users WHERE id=:id'),
+                      {'id': uid}).mappings().fetchone()
+    if not user:
+        return jsonify({'error': 'not found'}), 404
+    msgs = db.execute(text("""
+        SELECT id, text, ok, sent_at FROM history
+        WHERE user_id=:uid ORDER BY sent_at ASC
+    """), {'uid': uid}).mappings().fetchall()
+    return jsonify({'user': dict(user), 'messages': [dict(m) for m in msgs]})
 
 @app.route('/admin')
 @admin_required

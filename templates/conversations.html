@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% block title %}Conversations — NexusCoach Admin{% endblock %}
+
+{% block style %}
+.convo-layout{
+  display:grid;grid-template-columns:280px 1fr;
+  height:calc(100vh - 60px);overflow:hidden;
+}
+@media(max-width:640px){.convo-layout{grid-template-columns:1fr}}
+
+/* Sidebar */
+.sidebar{
+  border-right:1px solid rgba(255,255,255,.08);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sidebar-head{
+  padding:1rem;border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex;flex-direction:column;gap:.6rem;
+}
+.sidebar-head .back{
+  font-size:.78rem;color:rgba(255,255,255,.35);display:flex;align-items:center;gap:.3rem;
+}
+.sidebar-head .back a{color:rgba(255,255,255,.4);text-decoration:none}
+.sidebar-head .back a:hover{color:#fff}
+.sidebar-head h2{font-size:1rem;font-weight:700;margin:0}
+.search-box{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:.45rem .7rem;font-size:.85rem;color:#fff;width:100%;
+  outline:none;
+}
+.search-box::placeholder{color:rgba(255,255,255,.25)}
+.search-box:focus{border-color:rgba(255,255,255,.25)}
+
+.user-list{overflow-y:auto;flex:1}
+.user-item{
+  padding:.75rem 1rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);
+  transition:background .12s;
+}
+.user-item:hover{background:rgba(255,255,255,.04)}
+.user-item.active{background:rgba(255,255,255,.08)}
+.user-item .u-name{font-size:.88rem;font-weight:600;margin-bottom:.2rem}
+.user-item .u-phone{font-size:.75rem;color:rgba(255,255,255,.35);font-family:monospace}
+.user-item .u-count{font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.2rem}
+
+/* Main panel */
+.chat-panel{display:flex;flex-direction:column;overflow:hidden}
+.chat-header{
+  padding:.9rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.08);
+  display:flex;align-items:center;gap:.75rem;flex-shrink:0;
+}
+.chat-header .ch-name{font-size:1rem;font-weight:700}
+.chat-header .ch-phone{font-size:.8rem;color:rgba(255,255,255,.35);font-family:monospace}
+.live-dot{
+  width:7px;height:7px;border-radius:50%;background:#4ade80;
+  box-shadow:0 0 6px #4ade80;animation:pulse 2s ease-in-out infinite;margin-left:auto;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.live-label{font-size:.72rem;color:rgba(80,255,120,.6);margin-left:.35rem}
+
+.chat-empty{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.2);font-size:.9rem;
+}
+
+.messages{
+  flex:1;overflow-y:auto;padding:1.25rem;
+  display:flex;flex-direction:column;gap:.65rem;
+}
+
+/* Bubble types */
+.bubble-wrap{display:flex;flex-direction:column;max-width:80%}
+.bubble-wrap.coach{align-self:flex-end;align-items:flex-end}
+.bubble-wrap.user-msg{align-self:flex-start;align-items:flex-start}
+.bubble-wrap.system{align-self:center;align-items:center;max-width:90%}
+
+.bubble{
+  padding:.6rem .9rem;border-radius:14px;font-size:.88rem;line-height:1.5;
+  word-break:break-word;
+}
+.coach .bubble{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.9);border-bottom-right-radius:4px;
+}
+.user-msg .bubble{
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+  color:rgba(255,255,255,.65);border-bottom-left-radius:4px;
+}
+.system .bubble{
+  background:rgba(255,50,50,.07);border:1px solid rgba(255,80,80,.12);
+  color:rgba(255,120,120,.6);font-size:.78rem;font-style:italic;
+}
+.bubble-time{
+  font-size:.68rem;color:rgba(255,255,255,.2);margin-top:.25rem;font-family:monospace;
+}
+.bubble-sender{font-size:.7rem;color:rgba(255,255,255,.25);margin-bottom:.2rem}
+{% endblock %}
+
+{% block content %}
+<div class="convo-layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <div class="back"><a href="/admin">← Admin panel</a></div>
+      <h2>Conversations</h2>
+      <input class="search-box" id="search" placeholder="Search name or number..." oninput="filterUsers()">
+    </div>
+    <div class="user-list" id="user-list">
+      {% for u in users %}
+      <div class="user-item" id="u-{{ u.id }}"
+           data-name="{{ (u.name or '').lower() }}"
+           data-phone="{{ (u.phone or '').replace(' ','') }}"
+           onclick="selectUser({{ u.id }}, '{{ u.name }}', '{{ u.phone or '' }}')">
+        <div class="u-name">{{ u.name }}</div>
+        <div class="u-phone">{{ u.phone or 'No phone' }}</div>
+        <div class="u-count">{{ u.msg_count or 0 }} message{{ 's' if (u.msg_count or 0) != 1 }}</div>
+      </div>
+      {% else %}
+      <div style="padding:1.5rem;text-align:center;color:rgba(255,255,255,.2);font-size:.85rem">No users yet</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="chat-panel" id="chat-panel">
+    <div class="chat-empty" id="chat-empty">Select a user to view their conversation</div>
+    <div id="chat-active" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+      <div class="chat-header">
+        <div>
+          <div class="ch-name" id="ch-name"></div>
+          <div class="ch-phone" id="ch-phone"></div>
+        </div>
+        <div class="live-dot"></div>
+        <div class="live-label">Live</div>
+      </div>
+      <div class="messages" id="messages"></div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let activeUid   = null;
+let pollTimer   = null;
+let lastCount   = 0;
+
+function filterUsers() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  document.querySelectorAll('.user-item').forEach(el => {
+    const match = !q || el.dataset.name.includes(q) || el.dataset.phone.includes(q);
+    el.style.display = match ? '' : 'none';
+  });
+}
+
+function selectUser(uid, name, phone) {
+  activeUid = uid;
+  lastCount = 0;
+  document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('u-' + uid);
+  if (el) el.classList.add('active');
+  document.getElementById('ch-name').textContent  = name;
+  document.getElementById('ch-phone').textContent = phone || '';
+  document.getElementById('chat-empty').style.display  = 'none';
+  document.getElementById('chat-active').style.display = 'flex';
+  if (pollTimer) clearInterval(pollTimer);
+  loadMessages(true);
+  pollTimer = setInterval(() => loadMessages(false), 3000);
+}
+
+async function loadMessages(scroll) {
+  if (!activeUid) return;
+  try {
+    const r = await fetch(`/admin/conversations/${activeUid}/messages`);
+    const d = await r.json();
+    if (d.error) return;
+    if (d.messages.length === lastCount && !scroll) return;
+    lastCount = d.messages.length;
+    renderMessages(d.messages, scroll || wasAtBottom());
+  } catch(e) {}
+}
+
+function wasAtBottom() {
+  const el = document.getElementById('messages');
+  return el ? el.scrollHeight - el.scrollTop - el.clientHeight < 60 : true;
+}
+
+function renderMessages(msgs, doScroll) {
+  const box = document.getElementById('messages');
+  box.innerHTML = '';
+  if (!msgs.length) {
+    box.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.2);font-size:.85rem;padding:2rem">No messages yet</div>';
+    return;
+  }
+  msgs.forEach(m => {
+    const txt = m.text || '';
+    let type, label, display;
+
+    if (!m.ok) {
+      type = 'system'; label = 'Error'; display = txt;
+    } else if (txt.startsWith('[You] ')) {
+      type = 'user-msg'; label = 'Member'; display = txt.slice(6);
+    } else if (txt.startsWith('[Reply] ')) {
+      type = 'coach'; label = 'NexusCoach'; display = txt.slice(8);
+    } else {
+      type = 'coach'; label = 'NexusCoach'; display = txt;
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = `bubble-wrap ${type}`;
+    wrap.innerHTML = `
+      <div class="bubble-sender">${label}</div>
+      <div class="bubble">${escHtml(display)}</div>
+      <div class="bubble-time">${fmtTime(m.sent_at)}</div>
+    `;
+    box.appendChild(wrap);
+  });
+  if (doScroll) box.scrollTop = box.scrollHeight;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function fmtTime(ts) {
+  if (!ts) return '';
+  try {
+    const d = new Date(ts.includes(' ') ? ts.replace(' ','T') + 'Z' : ts);
+    return d.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  } catch(e) { return ts; }
+}
+</script>
+{% endblock %}
