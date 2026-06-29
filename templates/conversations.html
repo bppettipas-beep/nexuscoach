@@ -9,32 +9,23 @@
 @media(max-width:640px){.convo-layout{grid-template-columns:1fr}}
 
 /* Sidebar */
-.sidebar{
-  border-right:1px solid rgba(255,255,255,.08);
-  display:flex;flex-direction:column;overflow:hidden;
-}
+.sidebar{border-right:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;overflow:hidden}
 .sidebar-head{
   padding:1rem;border-bottom:1px solid rgba(255,255,255,.07);
   display:flex;flex-direction:column;gap:.6rem;
 }
-.sidebar-head .back{
-  font-size:.78rem;color:rgba(255,255,255,.35);display:flex;align-items:center;gap:.3rem;
-}
-.sidebar-head .back a{color:rgba(255,255,255,.4);text-decoration:none}
+.sidebar-head .back a{font-size:.78rem;color:rgba(255,255,255,.4);text-decoration:none}
 .sidebar-head .back a:hover{color:#fff}
 .sidebar-head h2{font-size:1rem;font-weight:700;margin:0}
 .search-box{
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
-  border-radius:8px;padding:.45rem .7rem;font-size:.85rem;color:#fff;width:100%;
-  outline:none;
+  border-radius:8px;padding:.45rem .7rem;font-size:.85rem;color:#fff;width:100%;outline:none;
 }
 .search-box::placeholder{color:rgba(255,255,255,.25)}
 .search-box:focus{border-color:rgba(255,255,255,.25)}
-
 .user-list{overflow-y:auto;flex:1}
 .user-item{
-  padding:.75rem 1rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);
-  transition:background .12s;
+  padding:.75rem 1rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);transition:background .12s;
 }
 .user-item:hover{background:rgba(255,255,255,.04)}
 .user-item.active{background:rgba(255,255,255,.08)}
@@ -42,56 +33,75 @@
 .user-item .u-phone{font-size:.75rem;color:rgba(255,255,255,.35);font-family:monospace}
 .user-item .u-count{font-size:.72rem;color:rgba(255,255,255,.25);margin-top:.2rem}
 
-/* Main panel */
-.chat-panel{display:flex;flex-direction:column;overflow:hidden}
+/* Main */
+.chat-panel{display:flex;flex-direction:column;overflow:hidden;position:relative}
 .chat-header{
   padding:.9rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.08);
   display:flex;align-items:center;gap:.75rem;flex-shrink:0;
 }
-.chat-header .ch-name{font-size:1rem;font-weight:700}
-.chat-header .ch-phone{font-size:.8rem;color:rgba(255,255,255,.35);font-family:monospace}
-.live-dot{
-  width:7px;height:7px;border-radius:50%;background:#4ade80;
-  box-shadow:0 0 6px #4ade80;animation:pulse 2s ease-in-out infinite;margin-left:auto;
-}
+.chat-header .ch-info .ch-name{font-size:1rem;font-weight:700}
+.chat-header .ch-info .ch-phone{font-size:.8rem;color:rgba(255,255,255,.35);font-family:monospace}
+.live-indicator{display:flex;align-items:center;gap:.35rem;margin-left:auto}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;animation:pulse 2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.live-label{font-size:.72rem;color:rgba(80,255,120,.6);margin-left:.35rem}
+.live-label{font-size:.72rem;color:rgba(80,255,120,.6)}
+.btn-account{
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;padding:.38rem .75rem;font-size:.78rem;font-weight:600;
+  color:rgba(255,255,255,.65);cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.btn-account:hover{background:rgba(255,255,255,.12);color:#fff}
+.btn-account.active{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#fff}
 
 .chat-empty{
   flex:1;display:flex;align-items:center;justify-content:center;
   color:rgba(255,255,255,.2);font-size:.9rem;
 }
+.messages{flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:.65rem}
 
-.messages{
-  flex:1;overflow-y:auto;padding:1.25rem;
-  display:flex;flex-direction:column;gap:.65rem;
+/* Account details drawer */
+.acct-drawer{
+  position:absolute;top:0;right:0;bottom:0;width:320px;
+  background:#111;border-left:1px solid rgba(255,255,255,.1);
+  display:flex;flex-direction:column;overflow-y:auto;
+  transform:translateX(100%);transition:transform .25s ease;z-index:10;
 }
+.acct-drawer.open{transform:translateX(0)}
+.acct-drawer-head{
+  padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.acct-drawer-head h3{font-size:.95rem;font-weight:700;margin:0}
+.btn-close-drawer{
+  background:none;border:none;color:rgba(255,255,255,.35);font-size:1.1rem;
+  cursor:pointer;padding:0;line-height:1;transition:color .15s;
+}
+.btn-close-drawer:hover{color:#fff}
+.acct-fields{padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:1rem}
+.acct-field .af-label{
+  font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:rgba(255,255,255,.25);margin-bottom:.3rem;
+}
+.acct-field .af-val{
+  font-size:.88rem;color:rgba(255,255,255,.8);word-break:break-all;line-height:1.5;
+}
+.acct-field .af-val.mono{font-family:monospace;font-size:.76rem;color:rgba(255,255,255,.5)}
+.acct-field .af-badge{
+  display:inline-block;padding:.15rem .5rem;border-radius:6px;font-size:.72rem;font-weight:700;
+}
+.badge-ok{background:rgba(80,255,120,.1);color:#7effaa}
+.badge-no{background:rgba(255,255,255,.07);color:rgba(255,255,255,.3)}
 
-/* Bubble types */
+/* Bubbles */
 .bubble-wrap{display:flex;flex-direction:column;max-width:80%}
 .bubble-wrap.coach{align-self:flex-end;align-items:flex-end}
 .bubble-wrap.user-msg{align-self:flex-start;align-items:flex-start}
 .bubble-wrap.system{align-self:center;align-items:center;max-width:90%}
-
-.bubble{
-  padding:.6rem .9rem;border-radius:14px;font-size:.88rem;line-height:1.5;
-  word-break:break-word;
-}
-.coach .bubble{
-  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);
-  color:rgba(255,255,255,.9);border-bottom-right-radius:4px;
-}
-.user-msg .bubble{
-  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
-  color:rgba(255,255,255,.65);border-bottom-left-radius:4px;
-}
-.system .bubble{
-  background:rgba(255,50,50,.07);border:1px solid rgba(255,80,80,.12);
-  color:rgba(255,120,120,.6);font-size:.78rem;font-style:italic;
-}
-.bubble-time{
-  font-size:.68rem;color:rgba(255,255,255,.2);margin-top:.25rem;font-family:monospace;
-}
+.bubble{padding:.6rem .9rem;border-radius:14px;font-size:.88rem;line-height:1.5;word-break:break-word}
+.coach .bubble{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.9);border-bottom-right-radius:4px}
+.user-msg .bubble{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.65);border-bottom-left-radius:4px}
+.system .bubble{background:rgba(255,50,50,.07);border:1px solid rgba(255,80,80,.12);color:rgba(255,120,120,.6);font-size:.78rem;font-style:italic}
+.bubble-time{font-size:.68rem;color:rgba(255,255,255,.2);margin-top:.25rem;font-family:monospace}
 .bubble-sender{font-size:.7rem;color:rgba(255,255,255,.25);margin-bottom:.2rem}
 {% endblock %}
 
@@ -110,7 +120,7 @@
       <div class="user-item" id="u-{{ u.id }}"
            data-name="{{ (u.name or '').lower() }}"
            data-phone="{{ (u.phone or '').replace(' ','') }}"
-           onclick="selectUser({{ u.id }}, '{{ u.name }}', '{{ u.phone or '' }}')">
+           onclick="selectUser({{ u.id }})">
         <div class="u-name">{{ u.name }}</div>
         <div class="u-phone">{{ u.phone or 'No phone' }}</div>
         <div class="u-count">{{ u.msg_count or 0 }} message{{ 's' if (u.msg_count or 0) != 1 }}</div>
@@ -121,19 +131,32 @@
     </div>
   </div>
 
-  <!-- Main -->
+  <!-- Main panel -->
   <div class="chat-panel" id="chat-panel">
     <div class="chat-empty" id="chat-empty">Select a user to view their conversation</div>
+
     <div id="chat-active" style="display:none;flex:1;flex-direction:column;overflow:hidden">
       <div class="chat-header">
-        <div>
+        <div class="ch-info">
           <div class="ch-name" id="ch-name"></div>
           <div class="ch-phone" id="ch-phone"></div>
         </div>
-        <div class="live-dot"></div>
-        <div class="live-label">Live</div>
+        <button class="btn-account" id="btn-acct" onclick="toggleDrawer()">View Account</button>
+        <div class="live-indicator">
+          <div class="live-dot"></div>
+          <div class="live-label">Live</div>
+        </div>
       </div>
       <div class="messages" id="messages"></div>
+    </div>
+
+    <!-- Account details drawer -->
+    <div class="acct-drawer" id="acct-drawer">
+      <div class="acct-drawer-head">
+        <h3>Account Details</h3>
+        <button class="btn-close-drawer" onclick="toggleDrawer()">✕</button>
+      </div>
+      <div class="acct-fields" id="acct-fields"></div>
     </div>
   </div>
 
@@ -142,9 +165,11 @@
 
 {% block scripts %}
 <script>
-let activeUid   = null;
-let pollTimer   = null;
-let lastCount   = 0;
+let activeUid  = null;
+let pollTimer  = null;
+let lastCount  = 0;
+let drawerOpen = false;
+let cachedUser = null;
 
 function filterUsers() {
   const q = document.getElementById('search').value.toLowerCase().trim();
@@ -154,19 +179,28 @@ function filterUsers() {
   });
 }
 
-function selectUser(uid, name, phone) {
-  activeUid = uid;
-  lastCount = 0;
+function selectUser(uid) {
+  activeUid  = uid;
+  lastCount  = 0;
+  cachedUser = null;
+  drawerOpen = false;
+  document.getElementById('acct-drawer').classList.remove('open');
+  document.getElementById('btn-acct').classList.remove('active');
   document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
   const el = document.getElementById('u-' + uid);
   if (el) el.classList.add('active');
-  document.getElementById('ch-name').textContent  = name;
-  document.getElementById('ch-phone').textContent = phone || '';
   document.getElementById('chat-empty').style.display  = 'none';
   document.getElementById('chat-active').style.display = 'flex';
   if (pollTimer) clearInterval(pollTimer);
   loadMessages(true);
   pollTimer = setInterval(() => loadMessages(false), 3000);
+}
+
+function toggleDrawer() {
+  drawerOpen = !drawerOpen;
+  document.getElementById('acct-drawer').classList.toggle('open', drawerOpen);
+  document.getElementById('btn-acct').classList.toggle('active', drawerOpen);
+  if (drawerOpen && cachedUser) renderAccountDetails(cachedUser);
 }
 
 async function loadMessages(scroll) {
@@ -175,10 +209,38 @@ async function loadMessages(scroll) {
     const r = await fetch(`/admin/conversations/${activeUid}/messages`);
     const d = await r.json();
     if (d.error) return;
+    cachedUser = d.user;
+    document.getElementById('ch-name').textContent  = d.user.name  || '';
+    document.getElementById('ch-phone').textContent = d.user.phone || '';
+    if (drawerOpen) renderAccountDetails(d.user);
     if (d.messages.length === lastCount && !scroll) return;
     lastCount = d.messages.length;
     renderMessages(d.messages, scroll || wasAtBottom());
   } catch(e) {}
+}
+
+function renderAccountDetails(u) {
+  const fields = [
+    { label: 'Full Name',       val: u.name  || '—',  mono: false },
+    { label: 'Email Address',   val: u.email || '—',  mono: false },
+    { label: 'Phone Number',    val: u.phone || '—',  mono: true  },
+    { label: 'Goal',            val: u.goal  || '—',  mono: false },
+    { label: 'Account Status',  val: null,    badge: u.active   ? ['Active','badge-ok']   : ['Pending','badge-no'] },
+    { label: 'Phone Verified',  val: null,    badge: u.verified ? ['Verified','badge-ok'] : ['Unverified','badge-no'] },
+    { label: 'Member Since',    val: fmtTime(u.created) || '—', mono: false },
+    { label: 'Password Hash',   val: u.pw_hash || '—', mono: true, note: 'bcrypt — cannot be reversed' },
+  ];
+  const box = document.getElementById('acct-fields');
+  box.innerHTML = fields.map(f => {
+    let valHtml;
+    if (f.badge) {
+      valHtml = `<span class="af-badge ${f.badge[1]}">${escHtml(f.badge[0])}</span>`;
+    } else {
+      valHtml = `<div class="af-val${f.mono?' mono':''}">${escHtml(f.val)}</div>`;
+      if (f.note) valHtml += `<div style="font-size:.7rem;color:rgba(255,255,255,.2);margin-top:.2rem">${escHtml(f.note)}</div>`;
+    }
+    return `<div class="acct-field"><div class="af-label">${escHtml(f.label)}</div>${valHtml}</div>`;
+  }).join('');
 }
 
 function wasAtBottom() {
@@ -196,7 +258,6 @@ function renderMessages(msgs, doScroll) {
   msgs.forEach(m => {
     const txt = m.text || '';
     let type, label, display;
-
     if (!m.ok) {
       type = 'system'; label = 'Error'; display = txt;
     } else if (txt.startsWith('[You] ')) {
@@ -206,11 +267,10 @@ function renderMessages(msgs, doScroll) {
     } else {
       type = 'coach'; label = 'NexusCoach'; display = txt;
     }
-
     const wrap = document.createElement('div');
     wrap.className = `bubble-wrap ${type}`;
     wrap.innerHTML = `
-      <div class="bubble-sender">${label}</div>
+      <div class="bubble-sender">${escHtml(label)}</div>
       <div class="bubble">${escHtml(display)}</div>
       <div class="bubble-time">${fmtTime(m.sent_at)}</div>
     `;
@@ -220,7 +280,7 @@ function renderMessages(msgs, doScroll) {
 }
 
 function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function fmtTime(ts) {

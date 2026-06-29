@@ -801,7 +801,7 @@ def admin_conversations():
 @admin_required
 def conversation_messages(uid):
     db   = get_db()
-    user = db.execute(text('SELECT id, name, phone FROM users WHERE id=:id'),
+    user = db.execute(text('SELECT * FROM users WHERE id=:id'),
                       {'id': uid}).mappings().fetchone()
     if not user:
         return jsonify({'error': 'not found'}), 404
@@ -809,7 +809,21 @@ def conversation_messages(uid):
         SELECT id, text, ok, sent_at FROM history
         WHERE user_id=:uid ORDER BY sent_at ASC
     """), {'uid': uid}).mappings().fetchall()
-    return jsonify({'user': dict(user), 'messages': [dict(m) for m in msgs]})
+    u = dict(user)
+    return jsonify({
+        'user': {
+            'id':       u['id'],
+            'name':     u['name'],
+            'email':    u['email'],
+            'phone':    u['phone'],
+            'created':  u.get('created_at', ''),
+            'active':   bool(u.get('is_active')),
+            'verified': bool(u.get('phone_verified')),
+            'goal':     u.get('goal', ''),
+            'pw_hash':  u.get('password_hash', ''),
+        },
+        'messages': [dict(m) for m in msgs],
+    })
 
 @app.route('/admin')
 @admin_required
