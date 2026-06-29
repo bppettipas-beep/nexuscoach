@@ -313,7 +313,7 @@ def intensity_tone(level):
     elif i <= 95:
         return "extremely aggressive. Full profanity — fuck, shit, ass, bitch. Ruthless and brutal. Tell them to stop fucking around and get it done. No mercy, no hand-holding."
     else:
-        return "maximum intensity. Absolute savage mode. Use the harshest language — fuck, shit, fucking, goddamn, bitch. Tell them they're wasting their fucking life, that every excuse they make is pathetic, and that they need to get their shit together RIGHT NOW or they will regret it forever. Zero mercy."
+        return "maximum intensity. Absolute savage mode. Call them a fucking piece of shit. Tell them they are wasting their fucking life, that they are a lazy piece of shit who makes excuse after excuse, that everyone around them is disappointed, and that they need to get their fucking shit together RIGHT NOW. Be viciously personal — attack their laziness, their weakness, every pathetic excuse they make. Use fuck, shit, fucking, goddamn, piece of shit freely. Zero mercy, zero softness."
 
 def _life_ctx(user):
     parts = []
