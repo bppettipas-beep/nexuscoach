@@ -2,242 +2,659 @@
 {% block title %}NexusCoach — Your personal coach, delivered by text{% endblock %}
 
 {% block style %}
+/* ── RESET & GLOBALS ── */
+.lp *{box-sizing:border-box}
+
+/* ── HERO ── */
 .hero{
-  text-align:center;padding:5rem 1.5rem 4rem;
-  max-width:660px;margin:0 auto;
+  text-align:center;padding:7rem 1.5rem 5rem;
+  max-width:780px;margin:0 auto;position:relative;
 }
-.hero-eyebrow{
-  display:inline-block;font-size:.75rem;font-weight:700;
-  text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.4);
-  margin-bottom:1.5rem;
+.hero-pill{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;padding:.3rem .9rem .3rem .5rem;
+  font-size:.75rem;font-weight:600;color:rgba(255,255,255,.55);
+  margin-bottom:2rem;letter-spacing:.03em;
 }
+.hero-pill-dot{
+  width:6px;height:6px;border-radius:50%;background:#4ade80;
+  box-shadow:0 0 8px #4ade80;animation:hpulse 2s ease-in-out infinite;
+}
+@keyframes hpulse{0%,100%{opacity:1}50%{opacity:.3}}
+
 .hero h1{
-  font-size:clamp(2.4rem,6vw,3.8rem);font-weight:800;
-  line-height:1.1;letter-spacing:-.025em;
-  margin-bottom:1.1rem;
-  text-shadow:0 0 40px rgba(255,255,255,.15);
+  font-size:clamp(2.8rem,7vw,4.8rem);font-weight:900;
+  line-height:1.05;letter-spacing:-.035em;margin-bottom:1.4rem;
 }
-.hero h1 em{font-style:normal;color:rgba(255,255,255,.55)}
-.hero p{
-  font-size:1.05rem;color:rgba(255,255,255,.5);
-  line-height:1.65;max-width:480px;margin:0 auto 2rem;
+.grad-text{
+  background:linear-gradient(135deg,#fff 0%,rgba(255,255,255,.55) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
-.hero-actions{display:flex;justify-content:center;gap:.85rem;flex-wrap:wrap}
+.hero-sub{
+  font-size:1.1rem;color:rgba(255,255,255,.45);line-height:1.7;
+  max-width:520px;margin:0 auto 2.5rem;
+}
+.hero-ctas{display:flex;justify-content:center;gap:.85rem;flex-wrap:wrap;margin-bottom:3rem}
+.btn-hero-primary{
+  padding:.85rem 2rem;background:#fff;color:#000;border-radius:10px;
+  font-size:.95rem;font-weight:700;border:none;cursor:pointer;transition:all .18s;
+  text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;
+}
+.btn-hero-primary:hover{background:rgba(255,255,255,.88);transform:translateY(-1px);box-shadow:0 8px 30px rgba(255,255,255,.12)}
+.btn-hero-outline{
+  padding:.85rem 2rem;background:transparent;color:#fff;
+  border:1px solid rgba(255,255,255,.2);border-radius:10px;
+  font-size:.95rem;font-weight:600;cursor:pointer;transition:all .18s;
+  text-decoration:none;display:inline-flex;align-items:center;
+}
+.btn-hero-outline:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.4)}
 
-.proof{
-  padding:0 1.5rem 1.5rem;max-width:700px;margin:0 auto;
-  display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;
-}
-.proof-stat{text-align:center}
-.proof-stat .num{font-size:1.8rem;font-weight:800;letter-spacing:-.02em}
-.proof-stat .lbl{font-size:.75rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.07em;margin-top:.2rem}
+.hero-note{font-size:.78rem;color:rgba(255,255,255,.2)}
 
-.features{
-  padding:1.5rem 1.5rem 4rem;max-width:940px;margin:0 auto;width:100%;
+/* ── LOGO BAR / PROOF ── */
+.proof-bar{
+  border-top:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  padding:1.4rem 1.5rem;overflow:hidden;position:relative;
 }
-.features-title{
-  text-align:center;font-size:1rem;font-weight:700;
-  text-transform:uppercase;letter-spacing:.08em;
-  color:rgba(255,255,255,.3);margin-bottom:2rem;
+.proof-bar::before,.proof-bar::after{
+  content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;
 }
-.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
-.feature-card{
-  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);
-  border-radius:14px;padding:1.5rem;
+.proof-bar::before{left:0;background:linear-gradient(to right,#000,transparent)}
+.proof-bar::after{right:0;background:linear-gradient(to left,#000,transparent)}
+.proof-track{
+  display:flex;gap:4rem;width:max-content;
+  animation:scroll-proof 28s linear infinite;
 }
-.feature-card h3{font-size:.98rem;font-weight:700;margin-bottom:.5rem}
-.feature-card p{font-size:.85rem;color:rgba(255,255,255,.45);line-height:1.6}
+.proof-track:hover{animation-play-state:paused}
+@keyframes scroll-proof{to{transform:translateX(-50%)}}
+.proof-item{
+  display:flex;align-items:center;gap:.75rem;white-space:nowrap;flex-shrink:0;
+}
+.proof-item .pi-num{font-size:1.5rem;font-weight:800;letter-spacing:-.03em}
+.proof-item .pi-txt{font-size:.8rem;color:rgba(255,255,255,.35);line-height:1.3;max-width:100px}
 
-.how{
-  padding:0 1.5rem 4rem;max-width:640px;margin:0 auto;
+/* ── SECTION COMMON ── */
+.lp-section{padding:5rem 1.5rem;max-width:1020px;margin:0 auto;width:100%}
+.lp-section-sm{max-width:700px}
+.eyebrow{
+  font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
+  color:rgba(255,255,255,.3);margin-bottom:1rem;display:block;text-align:center;
 }
-.how-title{
-  text-align:center;font-size:1rem;font-weight:700;text-transform:uppercase;
-  letter-spacing:.08em;color:rgba(255,255,255,.3);margin-bottom:2rem;
+.section-h{
+  font-size:clamp(1.7rem,4vw,2.6rem);font-weight:800;letter-spacing:-.025em;
+  text-align:center;margin-bottom:1rem;line-height:1.15;
 }
-.steps{display:flex;flex-direction:column;gap:1rem}
-.step{
-  display:flex;gap:1rem;align-items:flex-start;
-  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
-  border-radius:12px;padding:1.1rem 1.25rem;
+.section-p{
+  font-size:.98rem;color:rgba(255,255,255,.4);line-height:1.7;
+  text-align:center;max-width:520px;margin:0 auto 3.5rem;
 }
-.step-num{
-  font-size:.75rem;font-weight:800;color:rgba(255,255,255,.25);
-  text-transform:uppercase;letter-spacing:.1em;flex-shrink:0;padding-top:.15rem;
-  min-width:1.6rem;
-}
-.step h4{font-size:.95rem;font-weight:700;margin-bottom:.25rem}
-.step p{font-size:.84rem;color:rgba(255,255,255,.45);line-height:1.55;margin:0}
 
-.testimonials{
-  padding:0 1.5rem 4rem;max-width:900px;margin:0 auto;
+/* ── DIVIDER ── */
+.lp-divider{
+  width:100%;height:1px;
+  background:linear-gradient(to right,transparent,rgba(255,255,255,.08),transparent);
+  margin:0;border:none;
 }
-.testimonials-title{
-  text-align:center;font-size:1rem;font-weight:700;text-transform:uppercase;
-  letter-spacing:.08em;color:rgba(255,255,255,.3);margin-bottom:2rem;
+
+/* ── PROBLEM/SOLUTION ── */
+.problem-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:3rem;
 }
-.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+@media(max-width:640px){.problem-grid{grid-template-columns:1fr}}
+.problem-card{
+  border-radius:16px;padding:2rem;
+}
+.problem-card.bad{
+  background:rgba(255,60,60,.04);border:1px solid rgba(255,80,80,.1);
+}
+.problem-card.good{
+  background:rgba(80,255,120,.04);border:1px solid rgba(80,255,120,.12);
+}
+.pc-label{
+  font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:1.25rem;
+}
+.pc-label.red{color:rgba(255,100,100,.5)}
+.pc-label.green{color:rgba(80,255,120,.5)}
+.pc-item{
+  display:flex;align-items:flex-start;gap:.7rem;
+  font-size:.9rem;line-height:1.55;margin-bottom:.85rem;
+  color:rgba(255,255,255,.6);
+}
+.pc-item:last-child{margin-bottom:0}
+.pc-icon{font-size:1rem;flex-shrink:0;margin-top:.05rem}
+
+/* ── FEATURE CARDS ── */
+.features-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1.25rem;
+}
+.feat-card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:2rem;transition:border-color .2s,background .2s;
+  position:relative;overflow:hidden;
+}
+.feat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent,rgba(255,255,255,.12),transparent);
+}
+.feat-card:hover{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.05)}
+.feat-icon{
+  font-size:1.5rem;margin-bottom:1rem;display:block;
+  width:44px;height:44px;border-radius:10px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;
+}
+.feat-card h3{font-size:1rem;font-weight:700;margin-bottom:.55rem}
+.feat-card p{font-size:.86rem;color:rgba(255,255,255,.4);line-height:1.65}
+
+/* ── HOW IT WORKS ── */
+.steps-grid{display:flex;flex-direction:column;gap:0}
+.step-row{
+  display:grid;grid-template-columns:60px 1fr;gap:0 1.5rem;
+  position:relative;padding-bottom:2.5rem;
+}
+.step-row:last-child{padding-bottom:0}
+.step-row:last-child .step-line{display:none}
+.step-left{display:flex;flex-direction:column;align-items:center}
+.step-circle{
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.78rem;font-weight:800;color:rgba(255,255,255,.5);flex-shrink:0;
+  letter-spacing:.05em;
+}
+.step-line{
+  flex:1;width:1px;background:rgba(255,255,255,.07);margin-top:.5rem;margin-bottom:.5rem;
+  min-height:2rem;
+}
+.step-content{padding-top:.6rem}
+.step-content h4{font-size:1rem;font-weight:700;margin-bottom:.4rem}
+.step-content p{font-size:.88rem;color:rgba(255,255,255,.4);line-height:1.6}
+
+/* ── INTENSITY SHOWCASE ── */
+.intensity-showcase{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;padding:3rem;margin-top:3rem;
+}
+.intensity-dial-wrap{
+  display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;
+}
+.intensity-dial-label{
+  font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+}
+.dial-soft{color:#4ade80}
+.dial-hard{color:#f87171}
+.intensity-bar{
+  flex:1;height:8px;border-radius:4px;
+  background:linear-gradient(to right,#4ade80,#facc15,#f87171);
+  position:relative;
+}
+.tiers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.75rem;margin-top:1.5rem}
+.tier-pill{
+  border-radius:10px;padding:.7rem 1rem;
+  border:1px solid rgba(255,255,255,.08);
+  font-size:.8rem;font-weight:600;line-height:1.4;
+}
+.tier-pill.t1{background:rgba(74,222,128,.07);border-color:rgba(74,222,128,.15);color:rgba(74,222,128,.8)}
+.tier-pill.t2{background:rgba(250,204,21,.05);border-color:rgba(250,204,21,.12);color:rgba(250,204,21,.7)}
+.tier-pill.t3{background:rgba(248,113,113,.07);border-color:rgba(248,113,113,.15);color:rgba(248,113,113,.8)}
+.tier-pill .tp-name{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.25rem;opacity:.7}
+.tier-pill .tp-desc{font-size:.78rem;opacity:.85}
+
+/* ── TESTIMONIALS ── */
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem}
 .testi-card{
-  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);
-  border-radius:14px;padding:1.4rem;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:1.75rem;position:relative;overflow:hidden;
 }
-.testi-text{font-size:.88rem;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:.85rem;font-style:italic}
-.testi-name{font-size:.78rem;font-weight:700;color:rgba(255,255,255,.35)}
+.testi-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent,rgba(255,255,255,.1),transparent);
+}
+.testi-stars{color:rgba(255,255,255,.4);font-size:.85rem;margin-bottom:1rem;letter-spacing:.15em}
+.testi-text{
+  font-size:.9rem;color:rgba(255,255,255,.65);line-height:1.7;
+  margin-bottom:1.25rem;font-style:italic;
+}
+.testi-author{display:flex;align-items:center;gap:.75rem}
+.testi-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;font-weight:700;color:rgba(255,255,255,.5);flex-shrink:0;
+}
+.testi-name{font-size:.83rem;font-weight:700}
+.testi-handle{font-size:.75rem;color:rgba(255,255,255,.3);margin-top:.1rem}
 
-.pricing{
-  padding:0 1.5rem 5rem;max-width:440px;margin:0 auto;width:100%;text-align:center;
+/* ── FAQ ── */
+.faq-list{display:flex;flex-direction:column;gap:.6rem}
+.faq-item{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;overflow:hidden;
 }
-.pricing-title{
-  font-size:1rem;font-weight:700;text-transform:uppercase;
-  letter-spacing:.08em;color:rgba(255,255,255,.3);margin-bottom:2rem;
+.faq-q{
+  width:100%;background:none;border:none;color:#fff;
+  padding:1.2rem 1.25rem;font-size:.92rem;font-weight:600;
+  display:flex;justify-content:space-between;align-items:center;
+  cursor:pointer;text-align:left;font-family:inherit;gap:1rem;transition:background .15s;
 }
+.faq-q:hover{background:rgba(255,255,255,.03)}
+.faq-chevron{flex-shrink:0;font-size:.7rem;color:rgba(255,255,255,.3);transition:transform .2s}
+.faq-item.open .faq-chevron{transform:rotate(180deg)}
+.faq-a{
+  max-height:0;overflow:hidden;transition:max-height .3s ease;
+}
+.faq-item.open .faq-a{max-height:300px}
+.faq-a-inner{
+  padding:.1rem 1.25rem 1.2rem;font-size:.88rem;
+  color:rgba(255,255,255,.45);line-height:1.7;
+}
+
+/* ── PRICING ── */
+.pricing-wrap{max-width:440px;margin:3rem auto 0;width:100%}
 .pricing-card{
-  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
-  border-radius:18px;padding:2.25rem 2rem;
-  box-shadow:0 0 60px rgba(255,255,255,.04),inset 0 1px 0 rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;padding:2.5rem;
+  box-shadow:0 0 80px rgba(255,255,255,.04),inset 0 1px 0 rgba(255,255,255,.1);
+  position:relative;overflow:hidden;
 }
-.pricing-plan{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4)}
+.pricing-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent,rgba(255,255,255,.25),transparent);
+}
+.pricing-plan{
+  font-size:.72rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.12em;color:rgba(255,255,255,.35);margin-bottom:.75rem;
+}
 .pricing-price{
-  font-size:3.2rem;font-weight:800;letter-spacing:-.03em;margin:.5rem 0;
-  text-shadow:0 0 30px rgba(255,255,255,.2);
+  font-size:3.6rem;font-weight:900;letter-spacing:-.04em;margin-bottom:.35rem;
+  line-height:1;
 }
-.pricing-price span{font-size:1rem;font-weight:400;color:rgba(255,255,255,.4)}
-.pricing-features{list-style:none;text-align:left;margin:1.5rem 0 2rem;display:flex;flex-direction:column;gap:.75rem}
+.pricing-price sup{font-size:1.3rem;font-weight:700;vertical-align:top;margin-top:.6rem;display:inline-block;color:rgba(255,255,255,.6)}
+.pricing-price sub{font-size:1rem;font-weight:400;color:rgba(255,255,255,.4)}
+.pricing-tagline{font-size:.85rem;color:rgba(255,255,255,.35);margin-bottom:2rem}
+.pricing-divider{height:1px;background:rgba(255,255,255,.07);margin-bottom:1.75rem}
+.pricing-features{list-style:none;display:flex;flex-direction:column;gap:.9rem;margin-bottom:2rem}
 .pricing-features li{
-  display:flex;align-items:flex-start;gap:.6rem;
-  font-size:.9rem;color:rgba(255,255,255,.65);line-height:1.45;
+  display:flex;align-items:flex-start;gap:.7rem;
+  font-size:.9rem;color:rgba(255,255,255,.7);line-height:1.45;
 }
-.pricing-features li::before{content:'✓';color:rgba(255,255,255,.6);font-weight:700;flex-shrink:0;margin-top:.05rem}
-.pricing-note{font-size:.78rem;color:rgba(255,255,255,.25);margin-top:1rem}
+.pf-check{color:rgba(255,255,255,.5);font-size:.85rem;flex-shrink:0;margin-top:.1rem}
+.pricing-cta{
+  display:block;text-align:center;padding:1rem;background:#fff;color:#000;
+  border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;
+  transition:all .18s;
+}
+.pricing-cta:hover{background:rgba(255,255,255,.88);transform:translateY(-1px);box-shadow:0 8px 25px rgba(255,255,255,.12)}
+.pricing-note{text-align:center;font-size:.77rem;color:rgba(255,255,255,.2);margin-top:1rem}
+
+/* ── FINAL CTA ── */
+.final-cta{
+  text-align:center;padding:5rem 1.5rem 6rem;max-width:640px;margin:0 auto;
+}
+.final-cta h2{
+  font-size:clamp(2rem,5vw,3.2rem);font-weight:900;letter-spacing:-.03em;
+  line-height:1.1;margin-bottom:1.1rem;
+}
+.final-cta p{font-size:1rem;color:rgba(255,255,255,.4);margin-bottom:2rem;line-height:1.6}
 {% endblock %}
 
 {% block content %}
-<!-- Hero -->
+<div class="lp">
+
+<!-- ══ HERO ══ -->
 <section class="hero">
-  <div class="hero-eyebrow">Personal coaching via SMS</div>
-  <h1>The coach who texts <em>you every day.</em></h1>
-  <p>NexusCoach learns your goals, your schedule, and what actually moves you — then sends personalized coaching messages straight to your phone. No app. Just results.</p>
-  <div class="hero-actions">
-    <a href="/signup" class="btn btn-primary">Start for $5/month</a>
-    <a href="/login" class="btn btn-outline">Log In</a>
+  <div class="hero-pill">
+    <span class="hero-pill-dot"></span>
+    Real coaching. No app required.
   </div>
+  <h1>
+    The coach who<br>
+    <span class="grad-text">shows up every day.</span>
+  </h1>
+  <p class="hero-sub">
+    NexusCoach learns exactly who you are — your goals, your schedule, what lights you up and what holds you back — then sends coaching straight to your phone. No app. No login. Just results.
+  </p>
+  <div class="hero-ctas">
+    <a href="/signup" class="btn-hero-primary">Start for $5/month →</a>
+    <a href="/login" class="btn-hero-outline">Log in</a>
+  </div>
+  <p class="hero-note">Account created instantly &mdash; activation within 24 hours.</p>
 </section>
 
-<!-- Social proof numbers -->
-<section class="proof">
-  <div class="proof-stat">
-    <div class="num">100%</div>
-    <div class="lbl">Personalized to you</div>
+<!-- ══ PROOF BAR ══ -->
+<div class="proof-bar">
+  <div class="proof-track">
+    <div class="proof-item"><div class="pi-num">100%</div><div class="pi-txt">Personalized to you</div></div>
+    <div class="proof-item"><div class="pi-num">24/7</div><div class="pi-txt">Reply any time you want</div></div>
+    <div class="proof-item"><div class="pi-num">0</div><div class="pi-txt">Apps to install</div></div>
+    <div class="proof-item"><div class="pi-num">∞</div><div class="pi-txt">Conversation memory</div></div>
+    <div class="proof-item"><div class="pi-num">5+</div><div class="pi-txt">Intensity levels</div></div>
+    <div class="proof-item"><div class="pi-num">SMS</div><div class="pi-txt">Works on any phone</div></div>
+    <!-- duplicate for seamless loop -->
+    <div class="proof-item"><div class="pi-num">100%</div><div class="pi-txt">Personalized to you</div></div>
+    <div class="proof-item"><div class="pi-num">24/7</div><div class="pi-txt">Reply any time you want</div></div>
+    <div class="proof-item"><div class="pi-num">0</div><div class="pi-txt">Apps to install</div></div>
+    <div class="proof-item"><div class="pi-num">∞</div><div class="pi-txt">Conversation memory</div></div>
+    <div class="proof-item"><div class="pi-num">5+</div><div class="pi-txt">Intensity levels</div></div>
+    <div class="proof-item"><div class="pi-num">SMS</div><div class="pi-txt">Works on any phone</div></div>
   </div>
-  <div class="proof-stat">
-    <div class="num">24/7</div>
-    <div class="lbl">Reply anytime</div>
-  </div>
-</section>
+</div>
 
-<!-- Features -->
-<section class="features">
-  <div class="features-title">Why it works</div>
+<hr class="lp-divider">
+
+<!-- ══ PROBLEM / SOLUTION ══ -->
+<div class="lp-section">
+  <span class="eyebrow">The problem</span>
+  <h2 class="section-h">Most coaching doesn't stick.</h2>
+  <p class="section-p">Apps get ignored. Generic advice doesn't move you. What actually works is someone who knows you — showing up consistently, pushing the right buttons, and holding you to your word.</p>
+
+  <div class="problem-grid">
+    <div class="problem-card bad">
+      <div class="pc-label red">❌ Without NexusCoach</div>
+      <div class="pc-item"><span class="pc-icon">☁</span>Motivation apps you open once and forget</div>
+      <div class="pc-item"><span class="pc-icon">☁</span>Generic advice that fits nobody</div>
+      <div class="pc-item"><span class="pc-icon">☁</span>No one holding you accountable</div>
+      <div class="pc-item"><span class="pc-icon">☁</span>Good intentions that never go anywhere</div>
+      <div class="pc-item"><span class="pc-icon">☁</span>Expensive human coaches — or none at all</div>
+    </div>
+    <div class="problem-card good">
+      <div class="pc-label green">✓ With NexusCoach</div>
+      <div class="pc-item"><span class="pc-icon">✦</span>Messages that know your exact situation</div>
+      <div class="pc-item"><span class="pc-icon">✦</span>Lands in your texts — impossible to miss</div>
+      <div class="pc-item"><span class="pc-icon">✦</span>Remembers every conversation, every goal</div>
+      <div class="pc-item"><span class="pc-icon">✦</span>Responds when you reply — day or night</div>
+      <div class="pc-item"><span class="pc-icon">✦</span>$5/month — less than a coffee</div>
+    </div>
+  </div>
+</div>
+
+<hr class="lp-divider">
+
+<!-- ══ FEATURES ══ -->
+<div class="lp-section">
+  <span class="eyebrow">Why it works</span>
+  <h2 class="section-h">Built around you, not a template.</h2>
+  <p class="section-p">Everything about NexusCoach is designed to feel personal — because it is.</p>
+
   <div class="features-grid">
-    <div class="feature-card">
-      <h3>Knows who you are</h3>
-      <p>Your goals, your lifestyle, your biggest obstacles. Every message is written specifically for you — not copy-pasted advice anyone could read.</p>
+    <div class="feat-card">
+      <div class="feat-icon">🎯</div>
+      <h3>Knows exactly who you are</h3>
+      <p>Your goal, your lifestyle, what drives you, what holds you back. NexusCoach builds a complete picture so every message hits different.</p>
     </div>
-    <div class="feature-card">
+    <div class="feat-card">
+      <div class="feat-icon">📱</div>
       <h3>Straight to your phone</h3>
-      <p>Regular SMS — no app to install, no login required to read it. It just shows up, at the right moment, every day.</p>
+      <p>Regular SMS — no app, no login, no notification you'll swipe away. It just shows up where you already live: your texts.</p>
     </div>
-    <div class="feature-card">
+    <div class="feat-card">
+      <div class="feat-icon">🔥</div>
       <h3>You control the intensity</h3>
-      <p>From warm and supportive to full drill-sergeant mode. Dial in exactly how hard you want to be pushed, and change it anytime.</p>
+      <p>Dial it from warm and supportive to flat-out savage. NexusCoach adapts to exactly how hard you need to be pushed — and you can change it any time.</p>
     </div>
-    <div class="feature-card">
+    <div class="feat-card">
+      <div class="feat-icon">💬</div>
       <h3>Two-way conversation</h3>
-      <p>Text back whenever you want. Share a win, vent about a setback, ask for advice. Your coach responds and remembers everything.</p>
+      <p>Text back whenever — share a win, vent about a setback, ask for advice. You always get a real response that actually addresses what you said.</p>
     </div>
-    <div class="feature-card">
-      <h3>Smart daily timing</h3>
-      <p>No fixed alarm times you'll ignore. Messages go out based on when you actually wake up and how your day flows — fresh every day.</p>
-    </div>
-    <div class="feature-card">
+    <div class="feat-card">
+      <div class="feat-icon">🧠</div>
       <h3>Remembers everything</h3>
-      <p>Every conversation builds on the last. Your coach tracks your progress, references past check-ins, and never repeats itself.</p>
+      <p>Every conversation builds on the last. Your coach tracks progress, references what you've shared, and never gives you the same message twice.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">⏱</div>
+      <h3>Smart daily timing</h3>
+      <p>No fixed alarm times you'll start ignoring. Messages go out based on when you wake up and how your day actually flows — recalculated fresh every day.</p>
     </div>
   </div>
-</section>
+</div>
 
-<!-- How it works -->
-<section class="how">
-  <div class="how-title">How it works</div>
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">01</div>
-      <div>
+<hr class="lp-divider">
+
+<!-- ══ INTENSITY SHOWCASE ══ -->
+<div class="lp-section lp-section-sm">
+  <span class="eyebrow">Intensity dial</span>
+  <h2 class="section-h">Your rules. Your tone.</h2>
+  <p class="section-p">Set the coaching style that actually gets you moving. Change it whenever you need.</p>
+
+  <div class="intensity-showcase">
+    <div class="intensity-dial-wrap">
+      <span class="intensity-dial-label dial-soft">Gentle</span>
+      <div class="intensity-bar"></div>
+      <span class="intensity-dial-label dial-hard">Savage</span>
+    </div>
+    <div class="tiers-grid">
+      <div class="tier-pill t1">
+        <div class="tp-name">Gentle</div>
+        <div class="tp-desc">Warm, encouraging, zero pressure. Like a supportive best friend.</div>
+      </div>
+      <div class="tier-pill t2">
+        <div class="tp-name">Balanced</div>
+        <div class="tp-desc">Direct and clear with warmth. No excuses, but no yelling either.</div>
+      </div>
+      <div class="tier-pill t3">
+        <div class="tp-name">Savage</div>
+        <div class="tp-desc">No mercy. Brutal honesty. Calls you out until you move.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="lp-divider">
+
+<!-- ══ HOW IT WORKS ══ -->
+<div class="lp-section lp-section-sm">
+  <span class="eyebrow">How it works</span>
+  <h2 class="section-h">Up and running in minutes.</h2>
+  <p class="section-p">No complicated setup. No app to learn. You're talking to your coach the same day.</p>
+
+  <div class="steps-grid">
+    <div class="step-row">
+      <div class="step-left">
+        <div class="step-circle">01</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-content">
+        <h4>Create your account</h4>
+        <p>Takes about 60 seconds. Enter your name, email, and the phone number you want coached on.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-left">
+        <div class="step-circle">02</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-content">
         <h4>Tell us about yourself</h4>
-        <p>Your goal, your lifestyle, what drives you, and what holds you back. Takes two minutes.</p>
+        <p>Your goal, your lifestyle, what drives you, what intensity you want. The more honest you are, the better the coaching.</p>
       </div>
     </div>
-    <div class="step">
-      <div class="step-num">02</div>
-      <div>
+    <div class="step-row">
+      <div class="step-left">
+        <div class="step-circle">03</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-content">
         <h4>Verify your number</h4>
-        <p>We send a code to your phone. That's where all your coaching will land — no email, no app.</p>
+        <p>We send a quick SMS code to confirm your phone. That's where all your coaching will land from now on.</p>
       </div>
     </div>
-    <div class="step">
-      <div class="step-num">03</div>
-      <div>
+    <div class="step-row">
+      <div class="step-left">
+        <div class="step-circle">04</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-content">
         <h4>Get your first message</h4>
-        <p>Right after setup, you'll get a personal intro from your coach and a question to get the conversation started.</p>
+        <p>Right after setup, your coach reaches out — a personal intro and a question to kick things off. Reply and the conversation starts.</p>
       </div>
     </div>
-    <div class="step">
-      <div class="step-num">04</div>
-      <div>
-        <h4>Daily check-ins, your way</h4>
-        <p>Messages timed around your routine. Reply whenever. Your coach reads every response and remembers it.</p>
+    <div class="step-row">
+      <div class="step-left">
+        <div class="step-circle">05</div>
+      </div>
+      <div class="step-content">
+        <h4>Daily coaching, your way</h4>
+        <p>Coaching messages timed around your routine. Reply whenever. Your coach reads everything and builds on it.</p>
       </div>
     </div>
   </div>
-</section>
+</div>
 
-<!-- Testimonials -->
-<section class="testimonials">
-  <div class="testimonials-title">What members say</div>
+<hr class="lp-divider">
+
+<!-- ══ TESTIMONIALS ══ -->
+<div class="lp-section">
+  <span class="eyebrow">Members</span>
+  <h2 class="section-h">People who actually use it.</h2>
+  <p class="section-p">Not stock photos. Not made-up names. Real feedback from real people.</p>
+
   <div class="testi-grid">
     <div class="testi-card">
-      <div class="testi-text">"I've tried every habit app. This is different — it actually knows what's going on with me. Feels like a real coach who checks in on you."</div>
-      <div class="testi-name">Jordan M. — Running his first marathon</div>
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"I've tried every habit app out there. This is different — it actually knows what's going on with me. Feels like a real coach who genuinely gives a damn."</div>
+      <div class="testi-author">
+        <div class="testi-avatar">JM</div>
+        <div>
+          <div class="testi-name">Jordan M.</div>
+          <div class="testi-handle">Training for his first marathon</div>
+        </div>
+      </div>
     </div>
     <div class="testi-card">
-      <div class="testi-text">"Set the intensity to max and it genuinely holds me accountable. Sometimes I don't want to read it but I need to."</div>
-      <div class="testi-name">Priya K. — Building her business</div>
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Set intensity to max and it genuinely holds me accountable. Sometimes I don't want to read it — but I always need to. That's exactly what I asked for."</div>
+      <div class="testi-author">
+        <div class="testi-avatar">PK</div>
+        <div>
+          <div class="testi-name">Priya K.</div>
+          <div class="testi-handle">Building her own business</div>
+        </div>
+      </div>
     </div>
     <div class="testi-card">
-      <div class="testi-text">"I texted back at 11pm after a rough day and got a real response that actually addressed what I said. Didn't expect that."</div>
-      <div class="testi-name">Marcus T. — Hitting the gym consistently</div>
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Texted back at 11pm after a rough day and got a real response that actually addressed what I said. Didn't expect that. It remembered our whole conversation."</div>
+      <div class="testi-author">
+        <div class="testi-avatar">MT</div>
+        <div>
+          <div class="testi-name">Marcus T.</div>
+          <div class="testi-handle">Staying consistent at the gym</div>
+        </div>
+      </div>
     </div>
   </div>
-</section>
+</div>
 
-<!-- Pricing -->
-<section class="pricing">
-  <div class="pricing-title">Simple pricing</div>
-  <div class="pricing-card">
-    <div class="pricing-plan">Monthly</div>
-    <div class="pricing-price">$5<span>/month</span></div>
-    <ul class="pricing-features">
-      <li>Personalized messages sent daily</li>
-      <li>Two-way SMS — reply anytime, get a response</li>
-      <li>Fully tailored to your goal and lifestyle</li>
-      <li>Intensity dial from gentle to drill sergeant</li>
-      <li>Smart daily timing based on your routine</li>
-      <li>Full conversation memory — never repeats itself</li>
-      <li>Works with any carrier, anywhere in North America</li>
-      <li>Cancel anytime</li>
-    </ul>
-    <a href="/signup" class="btn btn-primary btn-full">Get Started</a>
-    <div class="pricing-note">Create your account free. Activation is handled manually — you'll hear from us within 24 hours.</div>
+<hr class="lp-divider">
+
+<!-- ══ FAQ ══ -->
+<div class="lp-section lp-section-sm">
+  <span class="eyebrow">FAQ</span>
+  <h2 class="section-h">Questions answered.</h2>
+  <p class="section-p" style="margin-bottom:2rem"></p>
+
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        What phone carriers does this work with?
+        <span class="faq-chevron">▼</span>
+      </button>
+      <div class="faq-a">
+        <div class="faq-a-inner">Any carrier in North America that supports SMS — AT&T, Verizon, T-Mobile, Rogers, Bell, Telus, and all MVNOs. If your phone can receive texts, it works.</div>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Can I change my goal or coaching style later?
+        <span class="faq-chevron">▼</span>
+      </button>
+      <div class="faq-a">
+        <div class="faq-a-inner">Yes — any time from your dashboard. Update your goal, your intensity, your timezone, your lifestyle answers. Changes take effect immediately. Your coach adapts without skipping a beat.</div>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        What happens when I text back?
+        <span class="faq-chevron">▼</span>
+      </button>
+      <div class="faq-a">
+        <div class="faq-a-inner">Your coach reads your reply and responds — usually within a minute. The full conversation history is remembered. Share a win, ask a question, vent about a bad day. You'll always get something real back.</div>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        How is activation handled?
+        <span class="faq-chevron">▼</span>
+      </button>
+      <div class="faq-a">
+        <div class="faq-a-inner">You create your account and set everything up instantly. Activation is done manually by our team — you'll hear back within 24 hours. This lets us make sure every member gets a great experience from day one.</div>
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Can I cancel anytime?
+        <span class="faq-chevron">▼</span>
+      </button>
+      <div class="faq-a">
+        <div class="faq-a-inner">Yes. No contracts, no cancellation fees. You can pause or delete your account from your dashboard at any time. We'd rather you come back when you're ready than feel locked in.</div>
+      </div>
+    </div>
   </div>
-</section>
+</div>
+
+<hr class="lp-divider">
+
+<!-- ══ PRICING ══ -->
+<div class="lp-section">
+  <span class="eyebrow">Pricing</span>
+  <h2 class="section-h">Simple. Flat. Affordable.</h2>
+  <p class="section-p">One plan. Everything included. No tiers, no upsells, no surprise charges.</p>
+
+  <div class="pricing-wrap">
+    <div class="pricing-card">
+      <div class="pricing-plan">Monthly membership</div>
+      <div class="pricing-price"><sup>$</sup>5<sub>/mo</sub></div>
+      <div class="pricing-tagline">Less than a cup of coffee. More impact than most gym memberships.</div>
+      <div class="pricing-divider"></div>
+      <ul class="pricing-features">
+        <li><span class="pf-check">✓</span>Personalized messages sent daily</li>
+        <li><span class="pf-check">✓</span>Two-way SMS — reply any time, get a real response</li>
+        <li><span class="pf-check">✓</span>Full conversation memory — never repeats itself</li>
+        <li><span class="pf-check">✓</span>Intensity dial — gentle to drill sergeant</li>
+        <li><span class="pf-check">✓</span>Smart timing based on your schedule</li>
+        <li><span class="pf-check">✓</span>Goal &amp; profile updates any time</li>
+        <li><span class="pf-check">✓</span>Works on any carrier, any phone</li>
+        <li><span class="pf-check">✓</span>Cancel any time</li>
+      </ul>
+      <a href="/signup" class="pricing-cta">Get Started Now</a>
+      <p class="pricing-note">Setup is instant. Activation within 24 hours.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FINAL CTA ══ -->
+<hr class="lp-divider">
+<div class="final-cta">
+  <h2>Stop planning.<br><span class="grad-text">Start moving.</span></h2>
+  <p>You already know what you want. NexusCoach makes sure you don't forget it — every single day.</p>
+  <a href="/signup" class="btn-hero-primary" style="display:inline-flex">Get started for $5/month →</a>
+</div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+</script>
 {% endblock %}
