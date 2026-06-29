@@ -68,6 +68,7 @@ def migrate_db():
         ('q_push',          "TEXT DEFAULT ''"),
         ('phone_verified',  'INTEGER DEFAULT 0'),
         ('verify_code',     "TEXT DEFAULT ''"),
+        ('profile_json',    "TEXT DEFAULT '{}'"),
     ]
     with engine.connect() as c:
         pv_added = False
@@ -489,11 +490,20 @@ def debug_info():
     })
 
 
+MEDIA_DEFLECTS = [
+    "I'm a coach, not a camera. Send me an update on your progress instead.",
+    "Can't open that. But I can open a conversation about why you haven't hit your goal yet.",
+    "I'm text-only. Save the media for Instagram — send me a real update.",
+    "No visuals here. Just results. How's the goal going?",
+    "I don't do attachments. Only accountability. What's actually going on today?",
+]
+
 @app.route('/webhook/sms', methods=['POST'])
 def sms_webhook():
     from_number = request.form.get('From', '')
     body        = request.form.get('Body', '').strip()
-    logger.info(f"Incoming SMS from {from_number}: {body}")
+    num_media   = int(request.form.get('NumMedia', 0))
+    logger.info(f"Incoming SMS from {from_number}: {body!r} (media={num_media})")
 
     digits = ''.join(filter(str.isdigit, from_number))[-10:]
     with _conn() as c:
@@ -507,6 +517,17 @@ def sms_webhook():
 
     if not user:
         return twiml("Hey! I don't recognize this number. Sign up at nexuscoach.app to get started.")
+
+    # Media messages (images, video, voice, etc.) — deflect creatively
+    if num_media > 0 or not body:
+        reply = random.choice(MEDIA_DEFLECTS)
+        with _conn() as c:
+            c.execute(text('INSERT INTO history (user_id,text,ok) VALUES (:u,:t,1)'),
+                      {'u': user['id'], 't': f'[You] [sent media]'})
+            c.execute(text('INSERT INTO history (user_id,text,ok) VALUES (:u,:t,1)'),
+                      {'u': user['id'], 't': f'[Reply] {reply}'})
+            c.commit()
+        return twiml(reply)
 
     acfg = get_admin_cfg()
     if not acfg['claude_key']:
@@ -531,11 +552,15 @@ def sms_webhook():
         f"About them: {life}\n"
         f"Tone: {tone}\n\n"
         f"Full conversation history:\n{history_lines}\n\n"
-        f"They just replied: \"{body}\"\n\n"
-        "Write a short personal response under 155 characters. "
-        "You know their full history — never repeat yourself. "
-        "Acknowledge what they said, keep pushing them toward their goal. "
-        "No hashtags, no quotes, just the reply text."
+        f"They just sent: \"{body}\"\n\n"
+        "IMPORTANT RULES:\n"
+        "- If what they sent is completely off-topic (weather, news, jokes, trivia, random questions), "
+        "do NOT answer it. Instead respond with a short, witty, creative deflection that ties back to "
+        "their goal. Be clever — not robotic. Example: if they ask the weather, say something like "
+        "'Only forecast I care about: you crushing your goal today.'\n"
+        "- Never repeat something from the history above.\n"
+        "- Otherwise: acknowledge what they said and keep coaching them toward their goal.\n"
+        "Under 155 characters. No hashtags, no quotes, just the text."
     )
 
     try:
