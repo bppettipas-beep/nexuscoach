@@ -155,15 +155,32 @@ def fmt_time(sent_at):
 # ── Constants ─────────────────────────────────────────────────────────────────
 
 CARRIERS = {
-    'att':        ('AT&T',         'txt.att.net'),
-    'tmobile':    ('T-Mobile',     'tmomail.net'),
-    'verizon':    ('Verizon',      'vtext.com'),
-    'sprint':     ('Sprint',       'messaging.sprintpcs.com'),
-    'metropcs':   ('Metro PCS',    'mymetropcs.com'),
-    'boost':      ('Boost Mobile', 'sms.myboostmobile.com'),
-    'cricket':    ('Cricket',      'sms.cricketwireless.net'),
-    'uscellular': ('US Cellular',  'email.uscc.net'),
-    'googlefi':   ('Google Fi',    'msg.fi.google.com'),
+    # US carriers
+    'att':        ('AT&T',              'txt.att.net'),
+    'tmobile':    ('T-Mobile',          'tmomail.net'),
+    'verizon':    ('Verizon',           'vtext.com'),
+    'sprint':     ('Sprint',            'messaging.sprintpcs.com'),
+    'metropcs':   ('Metro PCS',         'mymetropcs.com'),
+    'boost':      ('Boost Mobile',      'sms.myboostmobile.com'),
+    'cricket':    ('Cricket',           'sms.cricketwireless.net'),
+    'uscellular': ('US Cellular',       'email.uscc.net'),
+    'googlefi':   ('Google Fi',         'msg.fi.google.com'),
+    'mint':       ('Mint Mobile',       'tmomail.net'),
+    'visible':    ('Visible',           'vtext.com'),
+    'xfinity':    ('Xfinity Mobile',    'vtext.com'),
+    'consumer':   ('Consumer Cellular', 'mailmymobile.net'),
+    'republic':   ('Republic Wireless', 'text.republicwireless.com'),
+    # Canadian carriers
+    'rogers':     ('Rogers',            'pcs.rogers.com'),
+    'bell':       ('Bell',              'txt.bell.ca'),
+    'telus':      ('Telus',             'msg.telus.com'),
+    'publicmobile': ('Public Mobile',   'msg.telus.com'),
+    'freedom':    ('Freedom Mobile',    'txt.freedommobile.ca'),
+    'fido':       ('Fido',              'fido.ca'),
+    'koodo':      ('Koodo',             'msg.koodomobile.com'),
+    'virgin':     ('Virgin Plus',       'vmobile.ca'),
+    'videotron':  ('Videotron',         'sms.videotron.ca'),
+    'sasktel':    ('SaskTel',           'sms.sasktel.com'),
 }
 
 STYLES = {
@@ -453,8 +470,6 @@ def test_message():
     user = dict(user) if user else {}
     if not user.get('setup_done'):
         return jsonify({'ok': False, 'error': 'Complete setup first'})
-    if not user.get('is_active'):
-        return jsonify({'ok': False, 'error': 'Account not yet activated'})
     acfg = get_admin_cfg()
     if not acfg['claude_key'] or not acfg['ejs_service']:
         return jsonify({'ok': False, 'error': 'Admin config not complete yet'})

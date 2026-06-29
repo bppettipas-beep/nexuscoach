@@ -101,11 +101,9 @@
     {% endif %}
 
     <div class="hero-actions">
-      {% if user['is_active'] and ready %}
       <button class="btn btn-primary btn-sm" id="test-btn" onclick="sendTest(this)">
-        <span id="test-label">Send Test Now</span>
+        <span id="test-label">Send Test Message</span>
       </button>
-      {% endif %}
       <a href="/setup" class="btn btn-outline btn-sm">Edit Settings</a>
       {% if user['is_admin'] %}
       <a href="/admin" class="btn btn-outline btn-sm">Admin Panel</a>
