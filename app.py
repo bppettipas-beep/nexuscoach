@@ -452,7 +452,7 @@ def check_and_send():
     if acfg['paused'] or not acfg['claude_key'] or not acfg['twilio_sid']:
         return
     with _conn() as c:
-        rows = c.execute(text('SELECT * FROM users WHERE is_active=1 AND setup_done=1')).mappings().fetchall()
+        rows = c.execute(text('SELECT * FROM users WHERE is_active=1 AND setup_done=1 AND is_admin=0')).mappings().fetchall()
     users = [dict(r) for r in rows]
     for user in users:
         try:
@@ -508,7 +508,7 @@ def sms_webhook():
     digits = ''.join(filter(str.isdigit, from_number))[-10:]
     with _conn() as c:
         row = c.execute(text(
-            'SELECT * FROM users WHERE phone LIKE :d AND is_active=1'
+            'SELECT * FROM users WHERE phone LIKE :d AND is_active=1 AND is_admin=0'
         ), {'d': f'%{digits}'}).mappings().fetchone()
         user = dict(row) if row else None
 
@@ -774,6 +774,8 @@ def test_message():
     user = db.execute(text('SELECT * FROM users WHERE id=:id'),
                       {'id': session['user_id']}).mappings().fetchone()
     user = dict(user) if user else {}
+    if user.get('is_admin'):
+        return jsonify({'ok': False, 'error': 'Admin accounts do not receive messages.'})
     if not user.get('setup_done'):
         return jsonify({'ok': False, 'error': 'Complete setup first'})
     acfg = get_admin_cfg()

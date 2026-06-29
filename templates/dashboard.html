@@ -108,15 +108,15 @@
     {% endif %}
 
     <div class="hero-actions">
+      {% if not user['is_admin'] %}
       <button class="btn btn-primary btn-sm" id="test-btn" onclick="sendTest(this)">
         <span id="test-label">Send Test Message</span>
       </button>
       <a href="/setup" class="btn btn-outline btn-sm">Edit Goal &amp; Settings</a>
-      {% if user['is_admin'] %}
-      <a href="/admin" class="btn btn-outline btn-sm">Admin Panel</a>
-      {% endif %}
-      {% if not user['is_admin'] %}
       <a href="/account/delete" class="btn btn-outline btn-sm" style="border-color:rgba(255,80,80,.25);color:rgba(255,100,100,.6)">Delete Account</a>
+      {% else %}
+      <a href="/admin" class="btn btn-primary btn-sm">Admin Panel</a>
+      <a href="/admin/conversations" class="btn btn-outline btn-sm">View Conversations</a>
       {% endif %}
     </div>
   </div>
