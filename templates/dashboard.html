@@ -133,6 +133,9 @@
       {% if user['is_admin'] %}
       <a href="/admin" class="btn btn-outline btn-sm">Admin Panel</a>
       {% endif %}
+      {% if not user['is_admin'] %}
+      <a href="/account/delete" class="btn btn-outline btn-sm" style="border-color:rgba(255,80,80,.25);color:rgba(255,100,100,.6)">Delete Account</a>
+      {% endif %}
     </div>
   </div>
   {% endif %}
@@ -146,8 +149,16 @@
         <div class="pi-val">{% set g = (user['goal'] or '') %}{{ g[:50] }}{% if g|length > 50 %}…{% endif %}</div>
       </div>
       <div class="profile-item">
-        <div class="pi-label">Style</div>
-        <div class="pi-val">{{ styles.get(user['style'] or 'gentle', ('—',''))[0] }}</div>
+        <div class="pi-label">Intensity</div>
+        <div class="pi-val">
+          {% set iv = (user.get('intensity') or 50)|int %}
+          {% if iv <= 30 %}Gentle
+          {% elif iv <= 55 %}Balanced
+          {% elif iv <= 75 %}Tough love
+          {% elif iv <= 90 %}Aggressive
+          {% else %}Max intensity{% endif %}
+          ({{ iv }}/100)
+        </div>
       </div>
       <div class="profile-item">
         <div class="pi-label">Schedule</div>

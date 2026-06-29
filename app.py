@@ -58,6 +58,34 @@ def _conn():
     """Raw connection for scheduler (outside request context)."""
     return engine.connect()
 
+def migrate_db():
+    new_cols = [
+        ('intensity',       'INTEGER DEFAULT 50'),
+        ('q_wakeup',        "TEXT DEFAULT ''"),
+        ('q_motivation',    "TEXT DEFAULT ''"),
+        ('q_obstacle',      "TEXT DEFAULT ''"),
+        ('q_lifestyle',     "TEXT DEFAULT ''"),
+        ('q_push',          "TEXT DEFAULT ''"),
+        ('phone_verified',  'INTEGER DEFAULT 0'),
+        ('verify_code',     "TEXT DEFAULT ''"),
+    ]
+    with engine.connect() as c:
+        pv_added = False
+        for col, typedef in new_cols:
+            try:
+                if IS_PG:
+                    c.execute(text(f'ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} {typedef}'))
+                else:
+                    c.execute(text(f'ALTER TABLE users ADD COLUMN {col} {typedef}'))
+                if col == 'phone_verified':
+                    pv_added = True
+            except Exception:
+                pass
+        if pv_added:
+            # Existing users with a phone are already verified — don't lock them out
+            c.execute(text("UPDATE users SET phone_verified=1 WHERE phone IS NOT NULL AND phone != ''"))
+        c.commit()
+
 def init_db():
     pk  = 'SERIAL'        if IS_PG else 'INTEGER'
     ts  = 'NOW()'         if IS_PG else "(datetime('now'))"
@@ -265,20 +293,44 @@ def send_via_twilio(acfg, to_phone, text_body):
     logger.info(f"Twilio ← SID: {msg.sid} status: {msg.status}")
     return to_e164
 
+def intensity_tone(level):
+    i = int(level or 50)
+    if i <= 15:
+        return "extremely gentle, warm, nurturing. Pure encouragement, zero pressure. Like a loving supportive friend."
+    elif i <= 30:
+        return "gentle and supportive. Warm, caring, encouraging."
+    elif i <= 45:
+        return "friendly and motivating. Upbeat with light directness."
+    elif i <= 55:
+        return "balanced. Clear and direct but still warm."
+    elif i <= 65:
+        return "firm and direct. Tough love. No excuses tolerated."
+    elif i <= 75:
+        return "intense and blunt. Push hard. Harsh truths, zero sugarcoating."
+    elif i <= 85:
+        return "very aggressive. Drill sergeant energy. Use phrases like 'stop being weak', 'no more excuses', 'grind NOW'."
+    elif i <= 95:
+        return "extremely aggressive. Use mild profanity (damn, hell, crap, ass). Ruthless. Tell them to stop making excuses and lock in."
+    else:
+        return "maximum intensity. Full drill sergeant. Swear freely (shit, damn, hell, ass). Be brutal. Zero mercy. Tell them to stop being a disappointment and get it done NOW."
+
 def generate_message(user, acfg):
     client = anthropic.Anthropic(api_key=acfg['claude_key'])
     hour   = datetime.now().hour
     tod    = 'morning' if hour < 12 else 'afternoon' if hour < 17 else 'evening'
-    style_desc = {
-        'gentle':        'warm, gentle, and encouraging',
-        'tough':         'direct, no-nonsense, tough-love',
-        'inspirational': 'poetic, profound, and deeply uplifting',
-        'practical':     'practical, action-oriented, and concrete',
-    }.get(user.get('style') or 'gentle', 'warm and encouraging')
+    tone   = intensity_tone(user.get('intensity', 50))
+    life_parts = []
+    if user.get('q_lifestyle'):   life_parts.append(f"lifestyle: {user['q_lifestyle']}")
+    if user.get('q_motivation'):  life_parts.append(f"motivated by: {user['q_motivation']}")
+    if user.get('q_obstacle'):    life_parts.append(f"biggest obstacle: {user['q_obstacle']}")
+    if user.get('q_push'):        life_parts.append(f"responds best to: {user['q_push']}")
+    if user.get('q_wakeup'):      life_parts.append(f"wake up time: {user['q_wakeup']}")
+    life_ctx = (' '.join(f'({p})' for p in life_parts)) if life_parts else ''
     prompt = (
         f"Write a motivational SMS for {user['name']}.\n"
         f"Their goal: {user['goal']}\n"
-        f"Tone: {style_desc}\n"
+        f"About them: {life_ctx}\n"
+        f"Tone: {tone}\n"
         f"Time of day: {tod}\n\n"
         "Rules: under 155 characters, no hashtags, personal to their goal, "
         "just the message text with no labels or quotes."
@@ -367,6 +419,17 @@ def debug_info():
         'session_user_id': session.get('user_id'),
     })
 
+@app.route('/wipe-db-fresh-start-confirm')
+def wipe_db():
+    with engine.connect() as c:
+        c.execute(text('DROP TABLE IF EXISTS history'))
+        c.execute(text('DROP TABLE IF EXISTS users'))
+        c.execute(text('DROP TABLE IF EXISTS settings'))
+        c.commit()
+    init_db()
+    migrate_db()
+    return 'Done — database wiped and recreated. Remove this route now.'
+
 @app.route('/webhook/sms', methods=['POST'])
 def sms_webhook():
     from_number = request.form.get('From', '')
@@ -397,15 +460,9 @@ def sms_webhook():
 
     recent = '\n'.join([f"Coach: {r[0]}" for r in reversed(hist) if r[1]])
 
-    style_desc = {
-        'gentle':        'warm, gentle, and encouraging',
-        'tough':         'direct, no-nonsense, tough-love',
-        'inspirational': 'poetic, profound, and deeply uplifting',
-        'practical':     'practical, action-oriented, and concrete',
-    }.get(user.get('style') or 'gentle', 'warm and encouraging')
-
+    tone = intensity_tone(user.get('intensity', 50))
     prompt = (
-        f"You are NexusCoach, a {style_desc} coach.\n"
+        f"You are NexusCoach. Tone: {tone}\n"
         f"User's goal: {user['goal']}\n"
         f"Recent messages you sent them:\n{recent}\n\n"
         f"They just replied: \"{body}\"\n\n"
@@ -471,6 +528,29 @@ def signup():
                 return redirect(url_for('setup'))
     return render_template('signup.html', error=error)
 
+@app.route('/verify', methods=['GET', 'POST'])
+@login_required
+def verify():
+    db   = get_db()
+    user = db.execute(text('SELECT * FROM users WHERE id=:id'),
+                      {'id': session['user_id']}).mappings().fetchone()
+    if not user:
+        session.clear()
+        return redirect(url_for('login'))
+    if user['phone_verified']:
+        return redirect(url_for('dashboard'))
+    error = None
+    if request.method == 'POST':
+        entered = request.form.get('code', '').strip()
+        if entered == str(user['verify_code']):
+            db.execute(text('UPDATE users SET phone_verified=1 WHERE id=:id'),
+                       {'id': session['user_id']})
+            db.commit()
+            return redirect(url_for('dashboard'))
+        else:
+            error = 'Incorrect code. Check your texts and try again.'
+    return render_template('verify.html', phone=user['phone'], error=error)
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'user_id' in session:
@@ -485,6 +565,8 @@ def login():
             error = 'Invalid email or password.'
         else:
             session['user_id'] = row['id']
+            if row['phone'] and not row['phone_verified']:
+                return redirect(url_for('verify'))
             return redirect(url_for('dashboard'))
     return render_template('login.html', error=error)
 
@@ -496,27 +578,73 @@ def logout():
 @app.route('/setup', methods=['GET', 'POST'])
 @login_required
 def setup():
+    import random
     db   = get_db()
     user = db.execute(text('SELECT * FROM users WHERE id=:id'),
                       {'id': session['user_id']}).mappings().fetchone()
     user = dict(user) if user else {}
+    error = None
     if request.method == 'POST':
-        f     = request.form
-        times = [t.strip() for t in f.getlist('times') if t.strip()]
+        f         = request.form
+        times     = [t.strip() for t in f.getlist('times') if t.strip()]
+        raw_phone  = f.get('phone','').strip()
+        new_phone  = format_phone(raw_phone) if raw_phone else ''
+        new_digits = ''.join(filter(str.isdigit, raw_phone))[-10:] if raw_phone else ''
+
+        # Duplicate phone check (compare by last 10 digits to handle format differences)
+        if new_digits:
+            dupe = db.execute(text(
+                "SELECT id FROM users WHERE phone LIKE :p AND id!=:id"
+            ), {'p': f'%{new_digits}', 'id': session['user_id']}).fetchone()
+            if dupe:
+                error = 'That phone number is already registered to another account.'
+                return render_template('setup.html', user=user, timezones=TIMEZONES, error=error)
+
+        old_digits    = ''.join(filter(str.isdigit, user.get('phone') or ''))[-10:]
+        phone_changed = new_digits != old_digits
+        was_verified  = bool(user.get('phone_verified'))
+        needs_verify  = new_phone and (phone_changed or not was_verified)
+
         db.execute(text("""
-            UPDATE users SET phone=:ph, carrier=:ca, goal=:go, style=:st,
-                             times=:ti, freq=:fr, tz=:tz, setup_done=1
+            UPDATE users SET phone=:ph, goal=:go, intensity=:iv,
+                             q_wakeup=:qw, q_motivation=:qm, q_obstacle=:qo,
+                             q_lifestyle=:ql, q_push=:qp,
+                             times=:ti, freq=:fr, tz=:tz, setup_done=1,
+                             phone_verified=:pv
             WHERE id=:id
         """), {
-            'ph': f.get('phone','').strip(), 'ca': f.get('carrier','verizon'),
-            'go': f.get('goal','').strip(),  'st': f.get('style','gentle'),
+            'ph': raw_phone, 'go': f.get('goal','').strip(),
+            'iv': int(f.get('intensity', 50)),
+            'qw': f.get('q_wakeup',''),   'qm': f.get('q_motivation',''),
+            'qo': f.get('q_obstacle',''), 'ql': f.get('q_lifestyle',''),
+            'qp': f.get('q_push',''),
             'ti': json.dumps(times or ['08:00']), 'fr': f.get('freq','daily'),
-            'tz': f.get('tz','US/Eastern'),  'id': session['user_id'],
+            'tz': f.get('tz','US/Eastern'),
+            'pv': 0 if needs_verify else (1 if was_verified else 0),
+            'id': session['user_id'],
         })
         db.commit()
+
+        if needs_verify:
+            acfg = get_admin_cfg()
+            if acfg['twilio_sid'] and acfg['twilio_token'] and acfg['twilio_from']:
+                code = str(random.randint(100000, 999999))
+                db.execute(text('UPDATE users SET verify_code=:c WHERE id=:id'),
+                           {'c': code, 'id': session['user_id']})
+                db.commit()
+                try:
+                    send_via_twilio(acfg, new_phone, f'Your NexusCoach code: {code}')
+                except Exception as ex:
+                    logger.warning(f"SMS verify send failed: {ex}")
+                return redirect(url_for('verify'))
+            else:
+                # Twilio not configured — skip verification
+                db.execute(text('UPDATE users SET phone_verified=1 WHERE id=:id'),
+                           {'id': session['user_id']})
+                db.commit()
+
         return redirect(url_for('dashboard'))
-    return render_template('setup.html',
-        user=user, carriers=CARRIERS, styles=STYLES, timezones=TIMEZONES)
+    return render_template('setup.html', user=user, timezones=TIMEZONES, error=error)
 
 @app.route('/dashboard')
 @login_required
@@ -540,7 +668,7 @@ def dashboard():
     times = json.loads(user.get('times') or '["08:00"]')
     return render_template('dashboard.html',
         user=user, hist=hist, ready=ready, times=times,
-        styles=STYLES, msgs_today=msgs_today, limit=acfg['daily_limit'])
+        msgs_today=msgs_today, limit=acfg['daily_limit'])
 
 @app.route('/test', methods=['POST'])
 @login_required
@@ -614,12 +742,50 @@ def delete_user(uid):
     db.commit()
     return redirect(url_for('admin'))
 
+@app.route('/account/delete', methods=['GET', 'POST'])
+@login_required
+def account_delete():
+    db   = get_db()
+    user = db.execute(text('SELECT * FROM users WHERE id=:id'),
+                      {'id': session['user_id']}).mappings().fetchone()
+    if not user:
+        session.clear()
+        return redirect(url_for('login'))
+    if user['is_admin']:
+        return redirect(url_for('dashboard'))
+    step  = request.form.get('step', '1') if request.method == 'POST' else '1'
+    error = None
+
+    if request.method == 'POST':
+        if step == '1':
+            # Step 2: must type DELETE
+            return render_template('account_delete.html', step='2', user=dict(user), error=None)
+        elif step == '2':
+            word = request.form.get('confirm_word', '').strip()
+            if word != 'DELETE':
+                error = 'You must type DELETE exactly.'
+                return render_template('account_delete.html', step='2', user=dict(user), error=error)
+            return render_template('account_delete.html', step='3', user=dict(user), error=None)
+        elif step == '3':
+            password = request.form.get('password', '').strip()
+            if not check_password_hash(user['password_hash'], password):
+                error = 'Incorrect password.'
+                return render_template('account_delete.html', step='3', user=dict(user), error=error)
+            db.execute(text('DELETE FROM history WHERE user_id=:id'), {'id': user['id']})
+            db.execute(text('DELETE FROM users WHERE id=:id'),        {'id': user['id']})
+            db.commit()
+            session.clear()
+            return redirect(url_for('landing'))
+
+    return render_template('account_delete.html', step='1', user=dict(user), error=None)
+
 # ── Start ─────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
     logger.info(f"Database: {'PostgreSQL' if IS_PG else 'SQLite'} ({_raw_url[:40]}...)")
     logger.info(f"Secret key source: {'env var' if os.environ.get('SECRET_KEY') else 'file/generated'}")
     init_db()
+    migrate_db()
     scheduler.add_job(check_and_send, 'interval', seconds=60, id='msg_job')
     scheduler.start()
 

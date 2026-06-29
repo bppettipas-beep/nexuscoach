@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Verify Your Phone — NexusCoach{% endblock %}
+
+{% block style %}
+.auth-wrap{display:flex;align-items:center;justify-content:center;flex:1;padding:3rem 1.5rem}
+.auth-card{
+  width:100%;max-width:420px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  border-radius:18px;padding:2.25rem;
+  box-shadow:0 0 50px rgba(255,255,255,.04),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.auth-logo{display:flex;align-items:center;gap:.6rem;justify-content:center;margin-bottom:1.75rem}
+.auth-logo span{font-size:1.1rem;font-weight:700}
+.auth-card h1{font-size:1.4rem;font-weight:700;margin-bottom:.35rem;text-align:center}
+.auth-card p{font-size:.88rem;color:rgba(255,255,255,.4);text-align:center;margin-bottom:1.75rem}
+.code-note{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;padding:.85rem 1rem;font-size:.84rem;
+  color:rgba(255,255,255,.5);margin-bottom:1.5rem;line-height:1.5;
+}
+.code-note strong{color:rgba(255,255,255,.8)}
+.resend-link{
+  display:block;text-align:center;margin-top:1rem;
+  font-size:.82rem;color:rgba(255,255,255,.3);
+}
+.resend-link a{color:rgba(255,255,255,.45)}
+.resend-link a:hover{color:rgba(255,255,255,.7)}
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo"><span>NexusCoach</span></div>
+    <h1>Check your texts</h1>
+    <p>We sent a 6-digit code to verify your number</p>
+
+    <div class="code-note">
+      Sent to <strong>{{ phone }}</strong>. Should arrive within a few seconds.
+      Check that your number is correct — you can <a href="/setup" style="color:rgba(255,255,255,.6)">go back to setup</a> to change it.
+    </div>
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/verify">
+      <div class="form-group">
+        <label>Verification Code</label>
+        <input class="form-control" type="text" name="code"
+               placeholder="123456" maxlength="6"
+               style="letter-spacing:.25em;font-size:1.2rem;text-align:center"
+               autocomplete="one-time-code" autofocus required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Verify &amp; Continue</button>
+    </form>
+
+    <div class="resend-link">
+      Wrong number? <a href="/setup">Go back to setup</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

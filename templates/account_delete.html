@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}Delete Account — NexusCoach{% endblock %}
+
+{% block style %}
+.del-wrap{display:flex;align-items:flex-start;justify-content:center;flex:1;padding:3rem 1.5rem}
+.del-card{
+  width:100%;max-width:460px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  border-radius:18px;padding:2.25rem;
+  box-shadow:0 0 50px rgba(255,255,255,.04),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.del-card h1{font-size:1.3rem;font-weight:800;margin-bottom:.35rem}
+.del-card .sub{font-size:.88rem;color:rgba(255,255,255,.4);margin-bottom:1.5rem}
+.step-pill{
+  display:inline-block;font-size:.72rem;font-weight:700;
+  background:rgba(255,80,80,.1);color:rgba(255,120,120,.8);
+  border:1px solid rgba(255,80,80,.2);border-radius:20px;
+  padding:.2rem .65rem;margin-bottom:1rem;letter-spacing:.05em;text-transform:uppercase;
+}
+.loss-list{
+  background:rgba(255,50,50,.05);border:1px solid rgba(255,80,80,.12);
+  border-radius:10px;padding:1rem 1.1rem;margin-bottom:1.5rem;
+}
+.loss-list p{font-size:.84rem;color:rgba(255,255,255,.5);margin-bottom:.5rem;line-height:1.5}
+.loss-list p:last-child{margin-bottom:0}
+.confirm-word-note{
+  font-size:.82rem;color:rgba(255,255,255,.35);margin-bottom:.35rem;
+}
+.del-actions{display:flex;flex-direction:column;gap:.6rem;margin-top:1.25rem}
+.btn-danger-outline{
+  background:transparent;border:1px solid rgba(255,80,80,.3);color:rgba(255,100,100,.8);
+  border-radius:10px;padding:.6rem 1.2rem;font-size:.9rem;font-weight:600;cursor:pointer;
+  transition:all .18s;width:100%;
+}
+.btn-danger-outline:hover{border-color:rgba(255,80,80,.6);background:rgba(255,50,50,.08)}
+.back-link{
+  display:block;text-align:center;margin-top:.75rem;
+  font-size:.83rem;color:rgba(255,255,255,.3);
+}
+.back-link a{color:rgba(255,255,255,.45)}
+.back-link a:hover{color:rgba(255,255,255,.7)}
+{% endblock %}
+
+{% block content %}
+<div class="del-wrap">
+  <div class="del-card">
+
+    {% if step == '1' %}
+    <span class="step-pill">Step 1 of 3</span>
+    <h1>Delete your account</h1>
+    <p class="sub">This action is permanent and cannot be undone.</p>
+
+    <div class="loss-list">
+      <p>Your account and login will be permanently removed.</p>
+      <p>All {{ user['name'] }}'s message history will be deleted.</p>
+      <p>Your goal, schedule, and settings will be erased.</p>
+      <p>You will stop receiving all coaching messages immediately.</p>
+    </div>
+
+    <form method="POST" action="/account/delete">
+      <input type="hidden" name="step" value="1">
+      <div class="del-actions">
+        <button type="submit" class="btn-danger-outline">I understand — continue to delete</button>
+      </div>
+    </form>
+    <div class="back-link"><a href="/dashboard">Cancel — go back to dashboard</a></div>
+
+    {% elif step == '2' %}
+    <span class="step-pill">Step 2 of 3</span>
+    <h1>Confirm deletion</h1>
+    <p class="sub">Type the word below to prove this is intentional.</p>
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/account/delete">
+      <input type="hidden" name="step" value="2">
+      <div class="form-group">
+        <p class="confirm-word-note">Type <strong style="color:rgba(255,100,100,.9);letter-spacing:.08em">DELETE</strong> in the box below:</p>
+        <input class="form-control" type="text" name="confirm_word"
+               placeholder="DELETE" autocomplete="off" autofocus
+               style="letter-spacing:.12em;font-size:1rem;text-align:center">
+      </div>
+      <div class="del-actions">
+        <button type="submit" class="btn-danger-outline">Continue</button>
+      </div>
+    </form>
+    <div class="back-link"><a href="/dashboard">Cancel</a></div>
+
+    {% elif step == '3' %}
+    <span class="step-pill">Step 3 of 3 — Final step</span>
+    <h1>Enter your password</h1>
+    <p class="sub">One last check. Enter your password to permanently delete the account for <strong style="color:rgba(255,255,255,.7)">{{ user['email'] }}</strong>.</p>
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/account/delete">
+      <input type="hidden" name="step" value="3">
+      <div class="form-group">
+        <label>Password</label>
+        <input class="form-control" type="password" name="password"
+               placeholder="Your password" autofocus required>
+      </div>
+      <div class="del-actions">
+        <button type="submit" class="btn btn-danger btn-full">Delete my account permanently</button>
+      </div>
+    </form>
+    <div class="back-link"><a href="/dashboard">Cancel</a></div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

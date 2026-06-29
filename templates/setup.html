@@ -5,18 +5,39 @@
 .setup-header{text-align:center;padding:2.5rem 1.5rem 0}
 .setup-header h1{font-size:1.8rem;font-weight:800;margin-bottom:.4rem}
 .setup-header p{font-size:.92rem;color:rgba(255,255,255,.4);margin-bottom:2rem}
-
 .setup-form{max-width:580px;margin:0 auto;padding:0 1.5rem 3rem}
 
-.style-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:.4rem}
-.style-card{
-  border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:1rem;cursor:pointer;
-  transition:all .18s;background:rgba(255,255,255,.03);
+.intensity-wrap{margin-top:.6rem}
+.intensity-label-row{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.55rem}
+.intensity-label-row .lbl-soft{color:#4ade80}
+.intensity-label-row .lbl-hard{color:#f87171}
+.intensity-slider{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:10px;border-radius:5px;outline:none;cursor:pointer;
+  background:linear-gradient(to right,#4ade80,#facc15,#f87171);
 }
-.style-card:has(input:checked){border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08)}
-.style-card input{display:none}
-.style-card .s-name{font-weight:700;font-size:.88rem;margin-bottom:.25rem}
-.style-card .s-desc{font-size:.75rem;color:rgba(255,255,255,.4)}
+.intensity-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+  background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:grab;
+}
+.intensity-slider::-moz-range-thumb{
+  width:24px;height:24px;border:none;border-radius:50%;
+  background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:grab;
+}
+.intensity-desc{
+  margin-top:.6rem;font-size:.8rem;min-height:1.1em;
+  padding:.4rem .6rem;border-radius:6px;background:rgba(255,255,255,.05);
+  color:rgba(255,255,255,.5);
+}
+
+.q-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem}
+.q-card{
+  border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.7rem .85rem;
+  cursor:pointer;transition:all .15s;background:rgba(255,255,255,.03);
+}
+.q-card:has(input:checked){border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.08)}
+.q-card input{display:none}
+.q-card-text{font-size:.83rem;font-weight:600;line-height:1.3}
 
 .times-list{display:flex;flex-direction:column;gap:.5rem;margin-top:.4rem}
 .time-row{display:flex;gap:.5rem;align-items:center}
@@ -33,7 +54,6 @@
   margin-top:.4rem;width:100%;transition:all .18s;
 }
 .btn-add-time:hover{border-color:rgba(255,255,255,.35);color:rgba(255,255,255,.7)}
-
 .freq-row{display:flex;gap:.6rem;margin-top:.4rem;flex-wrap:wrap}
 .freq-btn{
   flex:1;min-width:90px;padding:.5rem;
@@ -44,7 +64,6 @@
 }
 .freq-btn:has(input:checked){border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);color:#fff}
 .freq-btn input{display:none}
-
 .hint{font-size:.76rem;color:rgba(255,255,255,.3);margin-top:.35rem}
 {% endblock %}
 
@@ -55,46 +74,118 @@
 </div>
 
 <div class="setup-form">
+  {% if error %}
+  <div class="alert alert-error" style="margin-bottom:1rem">{{ error }}</div>
+  {% endif %}
   <form method="POST" action="/setup">
 
     <!-- Phone -->
     <div class="card">
       <div class="section-label">Your Phone</div>
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom:0">
         <label>Phone Number</label>
         <input class="form-control" type="tel" name="phone"
                value="{{ user['phone'] or '' }}" placeholder="5551234567" required>
-        <div class="hint">10 digits, any format — we'll clean it up</div>
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>Carrier</label>
-        <select class="form-control" name="carrier">
-          {% for key,(name,_) in carriers.items() %}
-          <option value="{{ key }}" {{ 'selected' if (user['carrier'] or 'verizon') == key }}>{{ name }}</option>
-          {% endfor %}
-        </select>
-        <div class="hint">Not sure? Check Settings → About → Network on your phone</div>
+        <div class="hint">10 digits, any format. We'll text a code to verify it. Each number can only be used on one account.</div>
       </div>
     </div>
 
-    <!-- About You -->
+    <!-- Goal -->
     <div class="card">
-      <div class="section-label">About You</div>
-      <div class="form-group">
-        <label>Your Main Goal</label>
+      <div class="section-label">Your Goal</div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>What are you working toward?</label>
         <textarea class="form-control" name="goal" rows="3"
-                  placeholder="e.g. Run a half marathon by October, get promoted to senior engineer, quit sugar for 90 days">{{ user['goal'] or '' }}</textarea>
+                  placeholder="e.g. Run a half marathon by October, get promoted, quit sugar for 90 days">{{ user['goal'] or '' }}</textarea>
         <div class="hint">Be specific — the more detail, the more personal the messages</div>
       </div>
+    </div>
+
+    <!-- Intensity -->
+    <div class="card">
+      <div class="section-label">Coaching Intensity</div>
       <div class="form-group" style="margin-bottom:0">
-        <label>Coaching Style</label>
-        <div class="style-grid">
-          {% for key,(name,desc) in styles.items() %}
-          <label class="style-card">
-            <input type="radio" name="style" value="{{ key }}"
-                   {{ 'checked' if (user['style'] or 'gentle') == key }}>
-            <div class="s-name">{{ name }}</div>
-            <div class="s-desc">{{ desc }}</div>
+        <label>How hard should NexusCoach push you?</label>
+        <div class="intensity-wrap">
+          <div class="intensity-label-row">
+            <span class="lbl-soft">Gentle &amp; supportive</span>
+            <span class="lbl-hard">Drill sergeant</span>
+          </div>
+          <input class="intensity-slider" type="range" min="0" max="100"
+                 value="{{ user['intensity'] if user.get('intensity') is not none else 50 }}"
+                 name="intensity" id="intensity-slider">
+          <div class="intensity-desc" id="intensity-desc"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Life questions -->
+    <div class="card">
+      <div class="section-label">About Your Life</div>
+      <p style="font-size:.82rem;color:rgba(255,255,255,.35);margin-bottom:1.25rem">
+        These help NexusCoach write messages that actually fit your situation.
+      </p>
+
+      <div class="form-group">
+        <label>What describes you best?</label>
+        <div class="q-grid">
+          {% for val, lbl in [('Student','Student'),('Working professional','9-to-5'),('Entrepreneur','Entrepreneur'),('Stay at home','Stay at home')] %}
+          <label class="q-card">
+            <input type="radio" name="q_lifestyle" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_lifestyle') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>What are you most focused on?</label>
+        <div class="q-grid">
+          {% for val, lbl in [('Health and fitness','Health & fitness'),('Career and money','Career & money'),('Relationships','Relationships'),('Learning and growth','Learning & growth')] %}
+          <label class="q-card">
+            <input type="radio" name="q_motivation" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_motivation') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Your biggest obstacle is:</label>
+        <div class="q-grid">
+          {% for val, lbl in [('Procrastination','Procrastination'),('Self-doubt','Self-doubt'),('Staying consistent','Staying consistent'),('Low energy','Low energy')] %}
+          <label class="q-card">
+            <input type="radio" name="q_obstacle" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_obstacle') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>What actually gets you moving?</label>
+        <div class="q-grid">
+          {% for val, lbl in [('Logic and facts','Logic & facts'),('Emotion and purpose','Emotion & purpose'),('Competition','Competition'),('Fear of regret','Fear of regret')] %}
+          <label class="q-card">
+            <input type="radio" name="q_push" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_push') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0">
+        <label>When do you usually wake up?</label>
+        <div class="q-grid">
+          {% for val, lbl in [('Before 6am','Before 6am'),('6am to 8am','6am to 8am'),('8am to 10am','8am to 10am'),('After 10am','After 10am')] %}
+          <label class="q-card">
+            <input type="radio" name="q_wakeup" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_wakeup') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
           </label>
           {% endfor %}
         </div>
@@ -111,7 +202,7 @@
           {% for t in times %}
           <div class="time-row">
             <input class="form-control" type="time" name="times" value="{{ t }}">
-            <button type="button" class="btn-rm" onclick="rmTime(this)">✕</button>
+            <button type="button" class="btn-rm" onclick="rmTime(this)">x</button>
           </div>
           {% endfor %}
         </div>
@@ -140,7 +231,7 @@
     </div>
 
     <button type="submit" class="btn btn-primary btn-full">
-      {{ 'Save Changes' if user['setup_done'] else 'Save & Continue →' }}
+      {{ 'Save Changes' if user['setup_done'] else 'Save & Continue' }}
     </button>
     {% if user['setup_done'] %}
     <a href="/dashboard" class="btn btn-outline btn-full" style="margin-top:.6rem">Cancel</a>
@@ -151,11 +242,36 @@
 
 {% block scripts %}
 <script>
+const DESCS = [
+  [0,15,'Very gentle and warm. Pure encouragement, zero pressure.'],
+  [16,30,'Supportive and kind. Mostly positive with light nudges.'],
+  [31,45,'Friendly and upbeat. Some directness mixed in.'],
+  [46,55,'Balanced. Clear and direct but still warm.'],
+  [56,65,'Firm and no-nonsense. Tough love, no excuses.'],
+  [66,75,'Intense and blunt. Harsh truths, zero sugarcoating.'],
+  [76,85,'Very aggressive. Drill sergeant energy. Hard push.'],
+  [86,95,'Extremely aggressive. Strong language. Ruthless accountability.'],
+  [96,100,'Maximum intensity. Full drill sergeant. Absolute zero mercy.'],
+];
+function getDesc(v){for(const[lo,hi,d]of DESCS)if(v>=lo&&v<=hi)return d;return '';}
+const slider=document.getElementById('intensity-slider');
+const desc=document.getElementById('intensity-desc');
+function updateSlider(){
+  const v=parseInt(slider.value);
+  desc.textContent=getDesc(v);
+  const pct=v/100;
+  const r=Math.round(74+pct*(248-74));
+  const g=Math.round(222-pct*(222-113));
+  desc.style.color=`rgb(${r},${g},128)`;
+}
+slider.addEventListener('input',updateSlider);
+updateSlider();
+
 function addTime(){
   const list=document.getElementById('times-list');
   if(list.children.length>=5)return;
   const row=document.createElement('div');row.className='time-row';
-  row.innerHTML='<input class="form-control" type="time" name="times" value="12:00"><button type="button" class="btn-rm" onclick="rmTime(this)">✕</button>';
+  row.innerHTML='<input class="form-control" type="time" name="times" value="12:00"><button type="button" class="btn-rm" onclick="rmTime(this)">x</button>';
   list.appendChild(row);
 }
 function rmTime(btn){
