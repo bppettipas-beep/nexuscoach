@@ -69,7 +69,7 @@
     <div class="section-label">API Configuration</div>
     {% if not cfg.claude_key or not cfg.ejs_service %}
     <div class="alert alert-warn" style="margin-bottom:1.25rem">
-      ⚠️ Not configured yet. Fill in your Claude API key and EmailJS credentials below.
+      Not configured yet. Fill in your Claude API key and EmailJS credentials below.
     </div>
     {% endif %}
 
@@ -80,7 +80,7 @@
           <div class="pw-wrap">
             <input class="form-control" type="password" name="claude_key" id="ck"
                    placeholder="{{ '••••••••' + cfg.claude_key[-4:] if cfg.claude_key else 'sk-ant-...' }}">
-            <button type="button" class="pw-toggle" onclick="toggle('ck')">👁</button>
+            <button type="button" class="pw-toggle" onclick="toggle('ck')">show</button>
           </div>
         </div>
         <div class="form-group">
@@ -103,12 +103,12 @@
           <div class="pw-wrap">
             <input class="form-control" type="password" name="ejs_pubkey" id="ejspk"
                    placeholder="{{ '••••••••' + cfg.ejs_pubkey[-4:] if cfg.ejs_pubkey else 'Your EmailJS public key' }}">
-            <button type="button" class="pw-toggle" onclick="toggle('ejspk')">👁</button>
+            <button type="button" class="pw-toggle" onclick="toggle('ejspk')">show</button>
           </div>
         </div>
       </div>
       <div class="alert alert-warn" style="font-size:.8rem;margin-bottom:1rem">
-        📧 <strong>EmailJS setup (2 min):</strong> Sign up free at emailjs.com → Email Services → connect Gmail →
+        <strong>EmailJS setup (2 min):</strong> Sign up free at emailjs.com → Email Services → connect Gmail →
         Email Templates → create template with <code style="background:rgba(255,255,255,.1);padding:.1rem .3rem;border-radius:4px">{{"{{"}}to_email{{"}}"}}</code> as To and
         <code style="background:rgba(255,255,255,.1);padding:.1rem .3rem;border-radius:4px">{{"{{"}}message{{"}}"}}</code> as body →
         Account → copy Public Key.
@@ -163,7 +163,7 @@
             </td>
             <td>
               {% if u['setup_done'] %}
-                <span style="color:rgba(80,255,120,.6);font-size:.8rem">✓ Done</span>
+                <span style="color:rgba(80,255,120,.6);font-size:.8rem">Done</span>
               {% else %}
                 <span style="color:rgba(255,255,255,.25);font-size:.8rem">Not yet</span>
               {% endif %}

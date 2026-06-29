@@ -64,9 +64,8 @@
   <!-- Hero status card -->
   <div class="hero-card">
     <div class="hero-top">
-      <div class="hero-logo"><img src="/icons/main-icon.png" alt=""></div>
       <div class="hero-text">
-        <h1>Hey, {{ user['name'] }} 👋</h1>
+        <h1>Hey, {{ user['name'] }}</h1>
         <p>NexusCoach is {{ 'running' if user['is_active'] else 'pending activation' }}</p>
       </div>
     </div>
@@ -84,11 +83,11 @@
 
     {% if not user['is_active'] %}
     <div class="pending-notice">
-      ⏳ Your account is pending activation. Once an admin approves it, your messages will start sending automatically.
+      Your account is pending activation. Once an admin approves it, your messages will start sending automatically.
     </div>
     {% elif not ready %}
     <div class="pending-notice">
-      ⚙️ Admin hasn't configured the API keys yet. Messages will start once setup is complete.
+      Admin hasn't configured the API keys yet. Messages will start once setup is complete.
     </div>
     {% else %}
     <!-- Daily limit bar -->
