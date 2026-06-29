@@ -61,6 +61,32 @@
 {% block content %}
 <div class="dash-wrap">
 
+  <!-- Setup prompt (if not yet configured) -->
+  {% if not user['setup_done'] %}
+  <div class="hero-card">
+    <div class="hero-top">
+      <div class="hero-text">
+        <h1>Hey, {{ user['name'] }}</h1>
+        <p>Finish setting up to start receiving messages</p>
+      </div>
+    </div>
+    <div class="hero-meta">
+      <span class="badge badge-inactive"><span class="dot dot-gray"></span>Not configured</span>
+      {% if user['is_admin'] %}<span class="badge badge-admin">Admin</span>{% endif %}
+    </div>
+    <div class="pending-notice">
+      Complete your coach profile to choose your phone number, carrier, goal, and schedule.
+    </div>
+    <div class="hero-actions">
+      <a href="/setup" class="btn btn-primary btn-sm">Complete Setup</a>
+      {% if user['is_admin'] %}
+      <a href="/admin" class="btn btn-outline btn-sm">Admin Panel</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% else %}
+
   <!-- Hero status card -->
   <div class="hero-card">
     <div class="hero-top">
@@ -90,7 +116,6 @@
       Admin hasn't configured the API keys yet. Messages will start once setup is complete.
     </div>
     {% else %}
-    <!-- Daily limit bar -->
     <div class="limit-bar-wrap">
       <div class="limit-label">Today's messages</div>
       <div class="limit-bar-track">
@@ -110,6 +135,7 @@
       {% endif %}
     </div>
   </div>
+  {% endif %}
 
   <!-- Profile summary -->
   <div class="card">
