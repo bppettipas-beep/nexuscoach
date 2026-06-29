@@ -143,7 +143,7 @@
     <div class="profile-grid">
       <div class="profile-item">
         <div class="pi-label">Goal</div>
-        <div class="pi-val">{{ user['goal'][:50] }}{% if user['goal']|length > 50 %}…{% endif %}</div>
+        <div class="pi-val">{% set g = (user['goal'] or '') %}{{ g[:50] }}{% if g|length > 50 %}…{% endif %}</div>
       </div>
       <div class="profile-item">
         <div class="pi-label">Style</div>
@@ -151,7 +151,7 @@
       </div>
       <div class="profile-item">
         <div class="pi-label">Schedule</div>
-        <div class="pi-val">{{ times | join(', ') }}</div>
+        <div class="pi-val">{{ times | join(', ') if times else '—' }}</div>
       </div>
       <div class="profile-item">
         <div class="pi-label">Frequency</div>

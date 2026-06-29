@@ -444,7 +444,10 @@ def dashboard():
     db   = get_db()
     user = db.execute(text('SELECT * FROM users WHERE id=:id'),
                       {'id': session['user_id']}).mappings().fetchone()
-    user = dict(user) if user else {}
+    if not user:
+        session.clear()
+        return redirect(url_for('login'))
+    user = dict(user)
     hist_rows = db.execute(text("""
         SELECT text, ok, sent_at FROM history
         WHERE user_id=:uid ORDER BY sent_at DESC LIMIT 20
