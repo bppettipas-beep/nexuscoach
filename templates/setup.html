@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit Settings' if user['setup_done'] else 'Set Up Your Coach' }} — NexusCoach{% endblock %}
+
+{% block style %}
+.setup-header{text-align:center;padding:2.5rem 1.5rem 0}
+.setup-header h1{font-size:1.8rem;font-weight:800;margin-bottom:.4rem}
+.setup-header p{font-size:.92rem;color:rgba(255,255,255,.4);margin-bottom:2rem}
+
+.setup-form{max-width:580px;margin:0 auto;padding:0 1.5rem 3rem}
+
+.style-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:.4rem}
+.style-card{
+  border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:1rem;cursor:pointer;
+  transition:all .18s;background:rgba(255,255,255,.03);
+}
+.style-card:has(input:checked){border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08)}
+.style-card input{display:none}
+.style-card .s-name{font-weight:700;font-size:.88rem;margin-bottom:.25rem}
+.style-card .s-desc{font-size:.75rem;color:rgba(255,255,255,.4)}
+
+.times-list{display:flex;flex-direction:column;gap:.5rem;margin-top:.4rem}
+.time-row{display:flex;gap:.5rem;align-items:center}
+.time-row input{flex:1}
+.btn-rm{
+  background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:6px;
+  color:rgba(255,255,255,.35);font-size:.9rem;padding:.38rem .6rem;cursor:pointer;
+  transition:all .15s;flex-shrink:0;
+}
+.btn-rm:hover{border-color:rgba(255,100,100,.4);color:rgba(255,100,100,.7)}
+.btn-add-time{
+  background:transparent;border:1px dashed rgba(255,255,255,.15);border-radius:8px;
+  color:rgba(255,255,255,.4);font-size:.85rem;padding:.5rem 1rem;cursor:pointer;
+  margin-top:.4rem;width:100%;transition:all .18s;
+}
+.btn-add-time:hover{border-color:rgba(255,255,255,.35);color:rgba(255,255,255,.7)}
+
+.freq-row{display:flex;gap:.6rem;margin-top:.4rem;flex-wrap:wrap}
+.freq-btn{
+  flex:1;min-width:90px;padding:.5rem;
+  border:1px solid rgba(255,255,255,.1);border-radius:8px;
+  background:rgba(255,255,255,.03);cursor:pointer;
+  font-size:.84rem;font-weight:600;text-align:center;
+  transition:all .18s;color:rgba(255,255,255,.5);
+}
+.freq-btn:has(input:checked){border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);color:#fff}
+.freq-btn input{display:none}
+
+.hint{font-size:.76rem;color:rgba(255,255,255,.3);margin-top:.35rem}
+{% endblock %}
+
+{% block content %}
+<div class="setup-header">
+  <h1>{{ 'Edit Your Settings' if user['setup_done'] else 'Set Up Your Coach' }}</h1>
+  <p>{{ 'Update your preferences below.' if user['setup_done'] else 'Tell NexusCoach about you so it can personalize every message.' }}</p>
+</div>
+
+<div class="setup-form">
+  <form method="POST" action="/setup">
+
+    <!-- Phone -->
+    <div class="card">
+      <div class="section-label">Your Phone</div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input class="form-control" type="tel" name="phone"
+               value="{{ user['phone'] or '' }}" placeholder="5551234567" required>
+        <div class="hint">10 digits, any format — we'll clean it up</div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Carrier</label>
+        <select class="form-control" name="carrier">
+          {% for key,(name,_) in carriers.items() %}
+          <option value="{{ key }}" {{ 'selected' if (user['carrier'] or 'verizon') == key }}>{{ name }}</option>
+          {% endfor %}
+        </select>
+        <div class="hint">Not sure? Check Settings → About → Network on your phone</div>
+      </div>
+    </div>
+
+    <!-- About You -->
+    <div class="card">
+      <div class="section-label">About You</div>
+      <div class="form-group">
+        <label>Your Main Goal</label>
+        <textarea class="form-control" name="goal" rows="3"
+                  placeholder="e.g. Run a half marathon by October, get promoted to senior engineer, quit sugar for 90 days">{{ user['goal'] or '' }}</textarea>
+        <div class="hint">Be specific — the more detail, the more personal the messages</div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Coaching Style</label>
+        <div class="style-grid">
+          {% for key,(name,desc) in styles.items() %}
+          <label class="style-card">
+            <input type="radio" name="style" value="{{ key }}"
+                   {{ 'checked' if (user['style'] or 'gentle') == key }}>
+            <div class="s-name">{{ name }}</div>
+            <div class="s-desc">{{ desc }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Schedule -->
+    <div class="card">
+      <div class="section-label">Schedule</div>
+      <div class="form-group">
+        <label>Message Time(s)</label>
+        <div class="times-list" id="times-list">
+          {% set times = (user['times'] or '["08:00"]') | fromjson %}
+          {% for t in times %}
+          <div class="time-row">
+            <input class="form-control" type="time" name="times" value="{{ t }}">
+            <button type="button" class="btn-rm" onclick="rmTime(this)">✕</button>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="button" class="btn-add-time" onclick="addTime()">+ Add another time</button>
+      </div>
+      <div class="form-group">
+        <label>Frequency</label>
+        <div class="freq-row">
+          {% for val,lbl in [('daily','Every Day'),('weekdays','Weekdays'),('weekends','Weekends')] %}
+          <label class="freq-btn">
+            <input type="radio" name="freq" value="{{ val }}"
+                   {{ 'checked' if (user['freq'] or 'daily') == val }}>
+            {{ lbl }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Timezone</label>
+        <select class="form-control" name="tz">
+          {% for val,lbl in timezones %}
+          <option value="{{ val }}" {{ 'selected' if (user['tz'] or 'US/Eastern') == val }}>{{ lbl }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-full">
+      {{ 'Save Changes' if user['setup_done'] else 'Save & Continue →' }}
+    </button>
+    {% if user['setup_done'] %}
+    <a href="/dashboard" class="btn btn-outline btn-full" style="margin-top:.6rem">Cancel</a>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function addTime(){
+  const list=document.getElementById('times-list');
+  if(list.children.length>=5)return;
+  const row=document.createElement('div');row.className='time-row';
+  row.innerHTML='<input class="form-control" type="time" name="times" value="12:00"><button type="button" class="btn-rm" onclick="rmTime(this)">✕</button>';
+  list.appendChild(row);
+}
+function rmTime(btn){
+  const list=document.getElementById('times-list');
+  if(list.children.length<=1)return;
+  btn.parentElement.remove();
+}
+</script>
+{% endblock %}

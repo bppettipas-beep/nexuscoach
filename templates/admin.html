@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% block title %}Admin Panel — NexusCoach{% endblock %}
+
+{% block style %}
+.admin-wrap{max-width:900px;margin:0 auto;padding:2rem 1.5rem 3rem}
+.admin-wrap h1{font-size:1.6rem;font-weight:800;margin-bottom:.3rem}
+.admin-wrap > p{font-size:.88rem;color:rgba(255,255,255,.35);margin-bottom:2rem}
+
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:2.6rem}
+.pw-toggle{
+  position:absolute;right:.75rem;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);
+  font-size:.95rem;padding:0;line-height:1;transition:color .2s;
+}
+.pw-toggle:hover{color:rgba(255,255,255,.7)}
+
+.save-row{display:flex;justify-content:flex-end;margin-top:1rem}
+
+/* Users table */
+.users-table{width:100%;border-collapse:collapse;font-size:.86rem}
+.users-table th{
+  text-align:left;padding:.6rem .85rem;
+  font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:rgba(255,255,255,.3);border-bottom:1px solid rgba(255,255,255,.08);
+}
+.users-table td{
+  padding:.75rem .85rem;border-bottom:1px solid rgba(255,255,255,.05);
+  vertical-align:middle;
+}
+.users-table tr:last-child td{border-bottom:none}
+.users-table .name-cell{font-weight:600}
+.users-table .email-cell{color:rgba(255,255,255,.4);font-size:.82rem}
+.action-group{display:flex;gap:.4rem;flex-wrap:wrap}
+
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:560px){.config-grid{grid-template-columns:1fr}}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-top:1px solid rgba(255,255,255,.07)}
+.toggle-row label{font-size:.9rem;font-weight:600}
+.toggle-row p{font-size:.78rem;color:rgba(255,255,255,.35);margin-top:.15rem}
+.toggle-switch input{display:none}
+.toggle-switch label{
+  display:block;width:42px;height:24px;background:rgba(255,255,255,.1);
+  border-radius:12px;cursor:pointer;position:relative;transition:background .2s;
+}
+.toggle-switch label::after{
+  content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;
+  background:#fff;border-radius:9px;transition:transform .2s;
+}
+.toggle-switch input:checked+label{background:rgba(255,80,80,.5)}
+.toggle-switch input:checked+label::after{transform:translateX(18px)}
+
+.stat-pill{
+  display:inline-block;padding:.18rem .55rem;border-radius:10px;
+  font-size:.74rem;font-weight:600;
+}
+.stat-active{background:rgba(80,255,120,.1);color:#7effaa}
+.stat-inactive{background:rgba(255,255,255,.07);color:rgba(255,255,255,.35)}
+{% endblock %}
+
+{% block content %}
+<div class="admin-wrap">
+  <h1>Admin Panel</h1>
+  <p>Configure API credentials and manage user subscriptions.</p>
+
+  <!-- API Config -->
+  <div class="card card-glow" style="margin-bottom:1.25rem">
+    <div class="section-label">API Configuration</div>
+    {% if not cfg.claude_key or not cfg.ejs_service %}
+    <div class="alert alert-warn" style="margin-bottom:1.25rem">
+      ⚠️ Not configured yet. Fill in your Claude API key and EmailJS credentials below.
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/admin/config">
+      <div class="config-grid">
+        <div class="form-group">
+          <label>Claude API Key</label>
+          <div class="pw-wrap">
+            <input class="form-control" type="password" name="claude_key" id="ck"
+                   placeholder="{{ '••••••••' + cfg.claude_key[-4:] if cfg.claude_key else 'sk-ant-...' }}">
+            <button type="button" class="pw-toggle" onclick="toggle('ck')">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Daily Message Limit per User</label>
+          <input class="form-control" type="number" name="daily_limit"
+                 value="{{ cfg.daily_limit }}" min="1" max="20">
+        </div>
+        <div class="form-group">
+          <label>EmailJS Service ID</label>
+          <input class="form-control" type="text" name="ejs_service"
+                 value="{{ cfg.ejs_service or '' }}" placeholder="service_xxxxxxx">
+        </div>
+        <div class="form-group">
+          <label>EmailJS Template ID</label>
+          <input class="form-control" type="text" name="ejs_template"
+                 value="{{ cfg.ejs_template or '' }}" placeholder="template_xxxxxxx">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>EmailJS Public Key</label>
+          <div class="pw-wrap">
+            <input class="form-control" type="password" name="ejs_pubkey" id="ejspk"
+                   placeholder="{{ '••••••••' + cfg.ejs_pubkey[-4:] if cfg.ejs_pubkey else 'Your EmailJS public key' }}">
+            <button type="button" class="pw-toggle" onclick="toggle('ejspk')">👁</button>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-warn" style="font-size:.8rem;margin-bottom:1rem">
+        📧 <strong>EmailJS setup (2 min):</strong> Sign up free at emailjs.com → Email Services → connect Gmail →
+        Email Templates → create template with <code style="background:rgba(255,255,255,.1);padding:.1rem .3rem;border-radius:4px">{{"{{"}}to_email{{"}}"}}</code> as To and
+        <code style="background:rgba(255,255,255,.1);padding:.1rem .3rem;border-radius:4px">{{"{{"}}message{{"}}"}}</code> as body →
+        Account → copy Public Key.
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label" style="font-size:.9rem;font-weight:600">Global Pause</div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.35);margin-top:.15rem">Stop all scheduled messages for all users</div>
+        </div>
+        <div class="toggle-switch">
+          <input type="checkbox" id="paused" name="paused" {{ 'checked' if cfg.paused }}>
+          <label for="paused"></label>
+        </div>
+      </div>
+
+      <div class="save-row">
+        <button type="submit" class="btn btn-primary">Save Configuration</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Users -->
+  <div class="card">
+    <div class="section-label">Users ({{ users | length }})</div>
+    {% if users %}
+    <div style="overflow-x:auto">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Status</th>
+            <th>Setup</th>
+            <th>Today</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>
+              <div class="name-cell">{{ u['name'] }}{% if u['is_admin'] %} <span style="font-size:.7rem;color:rgba(160,120,255,.7)">(admin)</span>{% endif %}</div>
+              <div class="email-cell">{{ u['email'] }}</div>
+            </td>
+            <td>
+              {% if u['is_active'] %}
+                <span class="stat-pill stat-active">Active</span>
+              {% else %}
+                <span class="stat-pill stat-inactive">Pending</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if u['setup_done'] %}
+                <span style="color:rgba(80,255,120,.6);font-size:.8rem">✓ Done</span>
+              {% else %}
+                <span style="color:rgba(255,255,255,.25);font-size:.8rem">Not yet</span>
+              {% endif %}
+            </td>
+            <td>
+              <span style="font-size:.84rem;color:rgba(255,255,255,.5)">
+                {{ u['msgs_today'] if u['msgs_date'] == today else 0 }}
+              </span>
+            </td>
+            <td><span style="font-size:.8rem;color:rgba(255,255,255,.35)">{{ u['joined'] }}</span></td>
+            <td>
+              <div class="action-group">
+                {% if not u['is_admin'] %}
+                  {% if u['is_active'] %}
+                  <form method="POST" action="/admin/users/{{ u['id'] }}/deactivate" style="display:contents">
+                    <button type="submit" class="btn btn-outline btn-sm">Pause</button>
+                  </form>
+                  {% else %}
+                  <form method="POST" action="/admin/users/{{ u['id'] }}/activate" style="display:contents">
+                    <button type="submit" class="btn btn-primary btn-sm">Activate</button>
+                  </form>
+                  {% endif %}
+                  <form method="POST" action="/admin/users/{{ u['id'] }}/delete" style="display:contents"
+                        onsubmit="return confirm('Delete {{ u['name'] }}? This cannot be undone.')">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                  </form>
+                {% else %}
+                  <span style="font-size:.78rem;color:rgba(255,255,255,.2)">—</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;color:rgba(255,255,255,.25);font-size:.88rem;padding:1.5rem">
+      No users yet. Share your signup link to get started.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggle(id){
+  const el=document.getElementById(id);
+  el.type=el.type==='password'?'text':'password';
+}
+</script>
+{% endblock %}

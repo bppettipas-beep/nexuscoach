@@ -1,0 +1,7 @@
+nexuscoach.db
+.flask_secret
+__pycache__/
+*.pyc
+*.pyo
+.env
+config.json

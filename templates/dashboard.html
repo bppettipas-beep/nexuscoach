@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — NexusCoach{% endblock %}
+
+{% block style %}
+.dash-wrap{max-width:640px;margin:0 auto;padding:2rem 1.5rem 3rem}
+
+.hero-card{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;padding:2rem;margin-bottom:1.25rem;
+  box-shadow:0 0 50px rgba(255,255,255,.05),inset 0 1px 0 rgba(255,255,255,.1);
+}
+.hero-top{display:flex;align-items:center;gap:.9rem;margin-bottom:1.25rem}
+.hero-logo img{
+  width:46px;height:auto;
+  filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px rgba(255,255,255,.5));
+}
+.hero-text h1{font-size:1.4rem;font-weight:800;margin-bottom:.2rem}
+.hero-text p{font-size:.85rem;color:rgba(255,255,255,.4)}
+.hero-meta{
+  display:flex;align-items:center;gap:.75rem;
+  margin-bottom:1.4rem;flex-wrap:wrap;
+}
+.hero-actions{display:flex;gap:.6rem;flex-wrap:wrap}
+
+.pending-notice{
+  background:rgba(255,200,50,.06);border:1px solid rgba(255,200,50,.15);
+  border-radius:10px;padding:1rem 1.1rem;
+  font-size:.86rem;color:rgba(255,220,100,.7);margin-bottom:1.25rem;
+}
+
+.limit-bar-wrap{margin-bottom:1.25rem}
+.limit-label{font-size:.78rem;color:rgba(255,255,255,.35);margin-bottom:.4rem}
+.limit-bar-track{
+  height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;
+}
+.limit-bar-fill{
+  height:100%;background:rgba(255,255,255,.5);border-radius:2px;
+  transition:width .4s;
+}
+.limit-count{font-size:.75rem;color:rgba(255,255,255,.3);margin-top:.3rem}
+
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.5rem}
+.profile-item .pi-label{font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.05em}
+.profile-item .pi-val{font-size:.9rem;color:rgba(255,255,255,.75);font-weight:500}
+
+.history-list{display:flex;flex-direction:column;gap:.65rem}
+.hist-item{
+  padding:.85rem 1rem;border-radius:10px;
+  background:rgba(255,255,255,.04);border-left:2px solid rgba(255,255,255,.25);
+}
+.hist-item.fail{border-left-color:rgba(255,80,80,.4);background:rgba(255,50,50,.04)}
+.hist-time{font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:.3rem;font-family:monospace}
+.hist-msg{font-size:.9rem;color:rgba(255,255,255,.75);line-height:1.45}
+.hist-empty{text-align:center;color:rgba(255,255,255,.25);font-size:.88rem;padding:1.5rem}
+
+.spinner-white{display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(255,255,255,.2);border-top-color:#fff;
+  border-radius:50%;animation:spin .65s linear infinite}
+{% endblock %}
+
+{% block content %}
+<div class="dash-wrap">
+
+  <!-- Hero status card -->
+  <div class="hero-card">
+    <div class="hero-top">
+      <div class="hero-logo"><img src="/icons/main-icon.png" alt=""></div>
+      <div class="hero-text">
+        <h1>Hey, {{ user['name'] }} 👋</h1>
+        <p>NexusCoach is {{ 'running' if user['is_active'] else 'pending activation' }}</p>
+      </div>
+    </div>
+
+    <div class="hero-meta">
+      {% if user['is_active'] %}
+        <span class="badge badge-active"><span class="dot dot-green"></span>Active</span>
+      {% else %}
+        <span class="badge badge-inactive"><span class="dot dot-gray"></span>Pending</span>
+      {% endif %}
+      {% if user['is_admin'] %}
+        <span class="badge badge-admin">Admin</span>
+      {% endif %}
+    </div>
+
+    {% if not user['is_active'] %}
+    <div class="pending-notice">
+      ⏳ Your account is pending activation. Once an admin approves it, your messages will start sending automatically.
+    </div>
+    {% elif not ready %}
+    <div class="pending-notice">
+      ⚙️ Admin hasn't configured the API keys yet. Messages will start once setup is complete.
+    </div>
+    {% else %}
+    <!-- Daily limit bar -->
+    <div class="limit-bar-wrap">
+      <div class="limit-label">Today's messages</div>
+      <div class="limit-bar-track">
+        <div class="limit-bar-fill" style="width:{{ [((msgs_today / limit) * 100), 100] | min }}%"></div>
+      </div>
+      <div class="limit-count">{{ msgs_today }} / {{ limit }} sent today</div>
+    </div>
+    {% endif %}
+
+    <div class="hero-actions">
+      {% if user['is_active'] and ready %}
+      <button class="btn btn-primary btn-sm" id="test-btn" onclick="sendTest(this)">
+        <span id="test-label">Send Test Now</span>
+      </button>
+      {% endif %}
+      <a href="/setup" class="btn btn-outline btn-sm">Edit Settings</a>
+      {% if user['is_admin'] %}
+      <a href="/admin" class="btn btn-outline btn-sm">Admin Panel</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Profile summary -->
+  <div class="card">
+    <div class="section-label">Your Setup</div>
+    <div class="profile-grid">
+      <div class="profile-item">
+        <div class="pi-label">Goal</div>
+        <div class="pi-val">{{ user['goal'][:50] }}{% if user['goal']|length > 50 %}…{% endif %}</div>
+      </div>
+      <div class="profile-item">
+        <div class="pi-label">Style</div>
+        <div class="pi-val">{{ styles.get(user['style'] or 'gentle', ('—',''))[0] }}</div>
+      </div>
+      <div class="profile-item">
+        <div class="pi-label">Schedule</div>
+        <div class="pi-val">{{ times | join(', ') }}</div>
+      </div>
+      <div class="profile-item">
+        <div class="pi-label">Frequency</div>
+        <div class="pi-val">{{ {'daily':'Every day','weekdays':'Weekdays','weekends':'Weekends'}.get(user['freq'] or 'daily','—') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message history -->
+  <div class="card">
+    <div class="section-label">Recent Messages</div>
+    {% if hist %}
+    <div class="history-list">
+      {% for item in hist %}
+      <div class="hist-item {{ '' if item['ok'] else 'fail' }}">
+        <div class="hist-time">{{ item['sent_fmt'] }}</div>
+        <div class="hist-msg">{{ item['text'] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="hist-empty">No messages yet — hit "Send Test Now" to try it out.</div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function sendTest(btn) {
+  const lbl = document.getElementById('test-label');
+  lbl.innerHTML = '<span class="spinner-white"></span>';
+  btn.disabled = true;
+  try {
+    const r = await fetch('/test', {method:'POST'});
+    const d = await r.json();
+    if (d.ok) {
+      showToast('Sent! "' + d.message.substring(0,55) + (d.message.length>55?'…':'') + '"', false);
+      setTimeout(() => location.reload(), 3000);
+    } else {
+      showToast('Error: ' + d.error, true);
+    }
+  } catch(e) {
+    showToast('Request failed', true);
+  }
+  lbl.textContent = 'Send Test Now';
+  btn.disabled = false;
+}
+</script>
+{% endblock %}
