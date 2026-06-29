@@ -130,13 +130,12 @@ def set_setting(key, value):
 
 def get_admin_cfg():
     return {
-        'claude_key':   get_setting('claude_key'),
-        'ejs_service':  get_setting('ejs_service'),
-        'ejs_template': get_setting('ejs_template'),
-        'ejs_pubkey':   get_setting('ejs_pubkey'),
-        'ejs_privkey':  get_setting('ejs_privkey'),
-        'daily_limit':  int(get_setting('daily_limit', '3')),
-        'paused':       get_setting('paused', '0') == '1',
+        'claude_key':    get_setting('claude_key'),
+        'twilio_sid':    get_setting('twilio_sid'),
+        'twilio_token':  get_setting('twilio_token'),
+        'twilio_from':   get_setting('twilio_from'),
+        'daily_limit':   int(get_setting('daily_limit', '3')),
+        'paused':        get_setting('paused', '0') == '1',
     }
 
 def fmt_time(sent_at):
@@ -245,29 +244,26 @@ def inject_current_user():
 
 # ── Core logic ────────────────────────────────────────────────────────────────
 
-def sms_addr(phone, carrier):
-    digits = ''.join(filter(str.isdigit, phone))[-10:]
-    _, domain = CARRIERS.get(carrier, ('?', 'vtext.com'))
-    return f"{digits}@{domain}"
+def format_phone(phone):
+    digits = ''.join(filter(str.isdigit, phone))
+    if len(digits) == 10:
+        return f'+1{digits}'
+    if len(digits) == 11 and digits[0] == '1':
+        return f'+{digits}'
+    return f'+{digits}'
 
-def send_via_emailjs(acfg, to_addr, text_body):
-    logger.info(f"EmailJS → sending to: {to_addr}")
-    payload = {
-        'service_id':      acfg['ejs_service'],
-        'template_id':     acfg['ejs_template'],
-        'user_id':         acfg['ejs_pubkey'],
-        'template_params': {'to_email': to_addr, 'message': text_body},
-    }
-    if acfg.get('ejs_privkey'):
-        payload['accessToken'] = acfg['ejs_privkey']
-    resp = requests.post(
-        'https://api.emailjs.com/api/v1.0/email/send',
-        json=payload,
-        timeout=15,
+def send_via_twilio(acfg, to_phone, text_body):
+    from twilio.rest import Client
+    to_e164 = format_phone(to_phone)
+    logger.info(f"Twilio → sending to: {to_e164}")
+    client = Client(acfg['twilio_sid'], acfg['twilio_token'])
+    msg = client.messages.create(
+        body=text_body,
+        from_=acfg['twilio_from'],
+        to=to_e164,
     )
-    logger.info(f"EmailJS ← {resp.status_code}: {resp.text[:120]}")
-    if resp.status_code != 200:
-        raise Exception(f"EmailJS {resp.status_code}: {resp.text}")
+    logger.info(f"Twilio ← SID: {msg.sid} status: {msg.status}")
+    return to_e164
 
 def generate_message(user, acfg):
     client = anthropic.Anthropic(api_key=acfg['claude_key'])
@@ -303,8 +299,7 @@ def do_send_user(user, acfg):
             return False, f'Daily limit ({limit}) reached'
 
         msg  = generate_message(user, acfg)
-        addr = sms_addr(user['phone'], user['carrier'])
-        send_via_emailjs(acfg, addr, msg)
+        addr = send_via_twilio(acfg, user['phone'], msg)
 
         with _conn() as c:
             c.execute(text('UPDATE users SET msgs_today=:n, msgs_date=:d WHERE id=:id'),
@@ -326,7 +321,7 @@ def do_send_user(user, acfg):
 
 def check_and_send():
     acfg = get_admin_cfg()
-    if acfg['paused'] or not acfg['claude_key'] or not acfg['ejs_service']:
+    if acfg['paused'] or not acfg['claude_key'] or not acfg['twilio_sid']:
         return
     with _conn() as c:
         rows = c.execute(text('SELECT * FROM users WHERE is_active=1 AND setup_done=1')).mappings().fetchall()
@@ -460,7 +455,7 @@ def dashboard():
     """), {'uid': user['id']}).fetchall()
     hist  = [{'text': r[0], 'ok': r[1], 'sent_fmt': fmt_time(r[2])} for r in hist_rows]
     acfg  = get_admin_cfg()
-    ready = bool(acfg['claude_key'] and acfg['ejs_service'] and acfg['ejs_template'] and acfg['ejs_pubkey'] and acfg['ejs_privkey'])
+    ready = bool(acfg['claude_key'] and acfg['twilio_sid'] and acfg['twilio_token'] and acfg['twilio_from'])
     today = datetime.now().strftime('%Y-%m-%d')
     msgs_today = user.get('msgs_today', 0) if user.get('msgs_date') == today else 0
     times = json.loads(user.get('times') or '["08:00"]')
@@ -478,7 +473,7 @@ def test_message():
     if not user.get('setup_done'):
         return jsonify({'ok': False, 'error': 'Complete setup first'})
     acfg = get_admin_cfg()
-    if not acfg['claude_key'] or not acfg['ejs_service']:
+    if not acfg['claude_key'] or not acfg['twilio_sid']:
         return jsonify({'ok': False, 'error': 'Admin config not complete yet'})
     ok, txt, addr = do_send_user(user, acfg)
     return jsonify({'ok': ok, 'message': txt if ok else None, 'error': txt if not ok else None, 'addr': addr})
@@ -504,7 +499,7 @@ def admin():
 def admin_config():
     f  = request.form
     db = get_db()
-    for key in ('claude_key', 'ejs_service', 'ejs_template', 'ejs_pubkey', 'ejs_privkey'):
+    for key in ('claude_key', 'twilio_sid', 'twilio_token', 'twilio_from'):
         val = f.get(key, '').strip()
         if val:
             _upsert_setting(db, key, val)

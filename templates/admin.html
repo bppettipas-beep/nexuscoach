@@ -67,9 +67,9 @@
   <!-- API Config -->
   <div class="card card-glow" style="margin-bottom:1.25rem">
     <div class="section-label">API Configuration</div>
-    {% if not cfg.claude_key or not cfg.ejs_service %}
+    {% if not cfg.claude_key or not cfg.twilio_sid %}
     <div class="alert alert-warn" style="margin-bottom:1.25rem">
-      Not configured yet. Fill in your Claude API key and EmailJS credentials below.
+      Not configured yet. Fill in your Claude API key and Twilio credentials below.
     </div>
     {% endif %}
 
@@ -89,34 +89,27 @@
                  value="{{ cfg.daily_limit }}" min="1" max="20">
         </div>
         <div class="form-group">
-          <label>EmailJS Service ID</label>
-          <input class="form-control" type="text" name="ejs_service"
-                 value="{{ cfg.ejs_service or '' }}" placeholder="service_xxxxxxx">
+          <label>Twilio Account SID</label>
+          <input class="form-control" type="text" name="twilio_sid"
+                 value="{{ cfg.twilio_sid or '' }}" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
         </div>
         <div class="form-group">
-          <label>EmailJS Template ID</label>
-          <input class="form-control" type="text" name="ejs_template"
-                 value="{{ cfg.ejs_template or '' }}" placeholder="template_xxxxxxx">
-        </div>
-        <div class="form-group">
-          <label>EmailJS Public Key</label>
+          <label>Twilio Auth Token</label>
           <div class="pw-wrap">
-            <input class="form-control" type="password" name="ejs_pubkey" id="ejspk"
-                   placeholder="{{ '••••••••' + cfg.ejs_pubkey[-4:] if cfg.ejs_pubkey else 'Your EmailJS public key' }}">
-            <button type="button" class="pw-toggle" onclick="toggle('ejspk')">show</button>
+            <input class="form-control" type="password" name="twilio_token" id="twtoken"
+                   placeholder="{{ '••••••••' + cfg.twilio_token[-4:] if cfg.twilio_token else 'Your auth token' }}">
+            <button type="button" class="pw-toggle" onclick="toggle('twtoken')">show</button>
           </div>
         </div>
-        <div class="form-group">
-          <label>EmailJS Private Key</label>
-          <div class="pw-wrap">
-            <input class="form-control" type="password" name="ejs_privkey" id="ejspriv"
-                   placeholder="{{ '••••••••' + cfg.ejs_privkey[-4:] if cfg.ejs_privkey else 'Your EmailJS private key' }}">
-            <button type="button" class="pw-toggle" onclick="toggle('ejspriv')">show</button>
-          </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Twilio Phone Number (From)</label>
+          <input class="form-control" type="text" name="twilio_from"
+                 value="{{ cfg.twilio_from or '' }}" placeholder="+15551234567">
         </div>
       </div>
       <div class="alert alert-warn" style="font-size:.8rem;margin-bottom:1rem">
-        <strong>Private Key:</strong> EmailJS dashboard → Account → Security → scroll down to find your Private Key.
+        <strong>Twilio setup:</strong> twilio.com → Console → copy Account SID and Auth Token → Phone Numbers → get a free number.
+        Trial accounts can only send to verified numbers — add yours under Verified Caller IDs.
       </div>
 
       <div class="toggle-row">
