@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """NexusCoach — AI-powered motivational SMS platform."""
 
-import json, os, logging, threading, webbrowser, secrets
+import json, os, logging, threading, webbrowser, secrets, random, hashlib
 from datetime import datetime
 from functools import wraps
 
@@ -314,30 +314,70 @@ def intensity_tone(level):
     else:
         return "maximum intensity. Full drill sergeant. Swear freely (shit, damn, hell, ass). Be brutal. Zero mercy. Tell them to stop being a disappointment and get it done NOW."
 
+def _life_ctx(user):
+    parts = []
+    if user.get('q_lifestyle'):  parts.append(f"lifestyle: {user['q_lifestyle']}")
+    if user.get('q_motivation'): parts.append(f"motivated by: {user['q_motivation']}")
+    if user.get('q_obstacle'):   parts.append(f"biggest obstacle: {user['q_obstacle']}")
+    if user.get('q_push'):       parts.append(f"responds best to: {user['q_push']}")
+    if user.get('q_wakeup'):     parts.append(f"usually wakes: {user['q_wakeup']}")
+    return ' | '.join(parts) if parts else ''
+
+def _recent_history(user_id, limit=15):
+    with _conn() as c:
+        rows = c.execute(text(
+            'SELECT text, ok FROM history WHERE user_id=:uid ORDER BY sent_at DESC LIMIT :lim'
+        ), {'uid': user_id, 'lim': limit}).fetchall()
+    return list(reversed(rows))
+
+def generate_daily_schedule(user, date_str):
+    import hashlib
+    seed = int(hashlib.sha256(f"{user['id']}-{date_str}".encode()).hexdigest()[:8], 16)
+    rng  = random.Random(seed)
+    wake_hour = {
+        'Before 6am': 5, '6am to 8am': 7,
+        '8am to 10am': 9, 'After 10am': 10,
+    }.get(user.get('q_wakeup') or '6am to 8am', 7)
+    lifestyle = user.get('q_lifestyle') or 'Working professional'
+    if lifestyle == 'Working professional':
+        windows = [(wake_hour, wake_hour+1), (12, 13), (18, 20)]
+    elif lifestyle == 'Student':
+        windows = [(wake_hour, wake_hour+1), (14, 16), (20, 22)]
+    elif lifestyle == 'Entrepreneur':
+        windows = [(wake_hour, wake_hour+1), (11, 13), (17, 19)]
+    else:
+        windows = [(wake_hour+1, wake_hour+2), (13, 15), (17, 19)]
+    times = []
+    for lo, hi in windows:
+        h = rng.randint(lo, max(lo, hi - 1))
+        m = rng.randint(0, 59)
+        times.append(f"{h:02d}:{m:02d}")
+    return times
+
 def generate_message(user, acfg):
-    client = anthropic.Anthropic(api_key=acfg['claude_key'])
-    hour   = datetime.now().hour
-    tod    = 'morning' if hour < 12 else 'afternoon' if hour < 17 else 'evening'
-    tone   = intensity_tone(user.get('intensity', 50))
-    life_parts = []
-    if user.get('q_lifestyle'):   life_parts.append(f"lifestyle: {user['q_lifestyle']}")
-    if user.get('q_motivation'):  life_parts.append(f"motivated by: {user['q_motivation']}")
-    if user.get('q_obstacle'):    life_parts.append(f"biggest obstacle: {user['q_obstacle']}")
-    if user.get('q_push'):        life_parts.append(f"responds best to: {user['q_push']}")
-    if user.get('q_wakeup'):      life_parts.append(f"wake up time: {user['q_wakeup']}")
-    life_ctx = (' '.join(f'({p})' for p in life_parts)) if life_parts else ''
+    client  = anthropic.Anthropic(api_key=acfg['claude_key'])
+    hour    = datetime.now().hour
+    tod     = 'morning' if hour < 12 else 'afternoon' if hour < 17 else 'evening'
+    tone    = intensity_tone(user.get('intensity', 50))
+    life    = _life_ctx(user)
+    hist    = _recent_history(user['id'])
+    history_lines = '\n'.join(
+        f"{'Coach' if r[1] else 'Error'}: {r[0]}" for r in hist
+    ) if hist else 'None yet'
     prompt = (
-        f"Write a motivational SMS for {user['name']}.\n"
+        f"You are NexusCoach, personally coaching {user['name']} via SMS.\n"
         f"Their goal: {user['goal']}\n"
-        f"About them: {life_ctx}\n"
+        f"About them: {life}\n"
         f"Tone: {tone}\n"
         f"Time of day: {tod}\n\n"
-        "Rules: under 155 characters, no hashtags, personal to their goal, "
-        "just the message text with no labels or quotes."
+        f"Your message history with them:\n{history_lines}\n\n"
+        "Write a new motivational SMS under 155 characters. "
+        "Never repeat something you've already sent. "
+        "Build on the conversation — reference their goal specifically. "
+        "No hashtags, no quotes, just the text."
     )
     resp = client.messages.create(
-        model='claude-sonnet-4-6',
-        max_tokens=80,
+        model='claude-sonnet-4-6', max_tokens=100,
         messages=[{'role': 'user', 'content': prompt}]
     )
     return resp.content[0].text.strip().strip('"\'')
@@ -418,17 +458,11 @@ def check_and_send():
             tz = pytz.timezone(user.get('tz') or 'US/Eastern')
         except Exception:
             tz = pytz.timezone('US/Eastern')
-        now_local  = datetime.now(tz)
-        cur_min    = now_local.strftime('%H:%M')
-        cur_dow    = now_local.strftime('%a').lower()
-        is_weekday = cur_dow not in ('sat', 'sun')
-        times = json.loads(user.get('times') or '["08:00"]')
-        if cur_min not in times:
-            continue
-        freq = user.get('freq') or 'daily'
-        if freq == 'weekdays' and not is_weekday:
-            continue
-        if freq == 'weekends' and is_weekday:
+        now_local = datetime.now(tz)
+        cur_min   = now_local.strftime('%H:%M')
+        today     = now_local.strftime('%Y-%m-%d')
+        schedule  = generate_daily_schedule(user, today)
+        if cur_min not in schedule:
             continue
         do_send_user(user, acfg)
 
@@ -478,21 +512,23 @@ def sms_webhook():
     if not acfg['claude_key']:
         return twiml("Hey! Something's off on our end — try again soon.")
 
-    with _conn() as c:
-        hist = c.execute(text(
-            'SELECT text, ok FROM history WHERE user_id=:uid ORDER BY sent_at DESC LIMIT 6'
-        ), {'uid': user['id']}).fetchall()
-
-    recent = '\n'.join([f"Coach: {r[0]}" for r in reversed(hist) if r[1]])
+    hist = _recent_history(user['id'], limit=20)
+    history_lines = '\n'.join(
+        f"{'Coach' if r[1] else 'System'}: {r[0]}" for r in hist
+    ) if hist else 'No prior messages'
 
     tone = intensity_tone(user.get('intensity', 50))
+    life = _life_ctx(user)
     prompt = (
-        f"You are NexusCoach. Tone: {tone}\n"
-        f"User's goal: {user['goal']}\n"
-        f"Recent messages you sent them:\n{recent}\n\n"
+        f"You are NexusCoach, personally coaching {user['name']} via SMS.\n"
+        f"Their goal: {user['goal']}\n"
+        f"About them: {life}\n"
+        f"Tone: {tone}\n\n"
+        f"Full conversation history:\n{history_lines}\n\n"
         f"They just replied: \"{body}\"\n\n"
-        "Write a short, personal response (under 155 characters). "
-        "Acknowledge what they said, keep coaching them toward their goal. "
+        "Write a short personal response under 155 characters. "
+        "You know their full history — never repeat yourself. "
+        "Acknowledge what they said, keep pushing them toward their goal. "
         "No hashtags, no quotes, just the reply text."
     )
 

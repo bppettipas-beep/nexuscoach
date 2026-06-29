@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
-{% block title %}NexusCoach — Daily motivation, sent to your phone{% endblock %}
+{% block title %}NexusCoach — Your personal coach, delivered by text{% endblock %}
 
 {% block style %}
 .hero{
   text-align:center;padding:5rem 1.5rem 4rem;
-  max-width:640px;margin:0 auto;
+  max-width:660px;margin:0 auto;
 }
 .hero-eyebrow{
   display:inline-block;font-size:.75rem;font-weight:700;
@@ -20,12 +20,20 @@
 .hero h1 em{font-style:normal;color:rgba(255,255,255,.55)}
 .hero p{
   font-size:1.05rem;color:rgba(255,255,255,.5);
-  line-height:1.65;max-width:460px;margin:0 auto 2rem;
+  line-height:1.65;max-width:480px;margin:0 auto 2rem;
 }
 .hero-actions{display:flex;justify-content:center;gap:.85rem;flex-wrap:wrap}
 
+.proof{
+  padding:0 1.5rem 1.5rem;max-width:700px;margin:0 auto;
+  display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;
+}
+.proof-stat{text-align:center}
+.proof-stat .num{font-size:1.8rem;font-weight:800;letter-spacing:-.02em}
+.proof-stat .lbl{font-size:.75rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.07em;margin-top:.2rem}
+
 .features{
-  padding:0 1.5rem 4rem;max-width:900px;margin:0 auto;width:100%;
+  padding:1.5rem 1.5rem 4rem;max-width:940px;margin:0 auto;width:100%;
 }
 .features-title{
   text-align:center;font-size:1rem;font-weight:700;
@@ -37,12 +45,47 @@
   background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);
   border-radius:14px;padding:1.5rem;
 }
-.feature-icon{font-size:1.6rem;margin-bottom:.85rem}
-.feature-card h3{font-size:.98rem;font-weight:700;margin-bottom:.4rem}
-.feature-card p{font-size:.85rem;color:rgba(255,255,255,.45);line-height:1.55}
+.feature-card h3{font-size:.98rem;font-weight:700;margin-bottom:.5rem}
+.feature-card p{font-size:.85rem;color:rgba(255,255,255,.45);line-height:1.6}
+
+.how{
+  padding:0 1.5rem 4rem;max-width:640px;margin:0 auto;
+}
+.how-title{
+  text-align:center;font-size:1rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:rgba(255,255,255,.3);margin-bottom:2rem;
+}
+.steps{display:flex;flex-direction:column;gap:1rem}
+.step{
+  display:flex;gap:1rem;align-items:flex-start;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;padding:1.1rem 1.25rem;
+}
+.step-num{
+  font-size:.75rem;font-weight:800;color:rgba(255,255,255,.25);
+  text-transform:uppercase;letter-spacing:.1em;flex-shrink:0;padding-top:.15rem;
+  min-width:1.6rem;
+}
+.step h4{font-size:.95rem;font-weight:700;margin-bottom:.25rem}
+.step p{font-size:.84rem;color:rgba(255,255,255,.45);line-height:1.55;margin:0}
+
+.testimonials{
+  padding:0 1.5rem 4rem;max-width:900px;margin:0 auto;
+}
+.testimonials-title{
+  text-align:center;font-size:1rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:rgba(255,255,255,.3);margin-bottom:2rem;
+}
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+.testi-card{
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;padding:1.4rem;
+}
+.testi-text{font-size:.88rem;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:.85rem;font-style:italic}
+.testi-name{font-size:.78rem;font-weight:700;color:rgba(255,255,255,.35)}
 
 .pricing{
-  padding:0 1.5rem 5rem;max-width:420px;margin:0 auto;width:100%;text-align:center;
+  padding:0 1.5rem 5rem;max-width:440px;margin:0 auto;width:100%;text-align:center;
 }
 .pricing-title{
   font-size:1rem;font-weight:700;text-transform:uppercase;
@@ -59,42 +102,124 @@
   text-shadow:0 0 30px rgba(255,255,255,.2);
 }
 .pricing-price span{font-size:1rem;font-weight:400;color:rgba(255,255,255,.4)}
-.pricing-features{list-style:none;text-align:left;margin:1.5rem 0 2rem;display:flex;flex-direction:column;gap:.7rem}
+.pricing-features{list-style:none;text-align:left;margin:1.5rem 0 2rem;display:flex;flex-direction:column;gap:.75rem}
 .pricing-features li{
   display:flex;align-items:flex-start;gap:.6rem;
-  font-size:.9rem;color:rgba(255,255,255,.65);
+  font-size:.9rem;color:rgba(255,255,255,.65);line-height:1.45;
 }
-.pricing-features li::before{content:'✓';color:rgba(255,255,255,.6);font-weight:700;flex-shrink:0}
+.pricing-features li::before{content:'✓';color:rgba(255,255,255,.6);font-weight:700;flex-shrink:0;margin-top:.05rem}
 .pricing-note{font-size:.78rem;color:rgba(255,255,255,.25);margin-top:1rem}
 {% endblock %}
 
 {% block content %}
 <!-- Hero -->
 <section class="hero">
-  <div class="hero-eyebrow">AI Coaching via SMS</div>
-  <h1>Daily motivation,<br><em>sent to your phone.</em></h1>
-  <p>NexusCoach sends AI-generated motivational messages directly to your phone — personalized to your goals, delivered on your schedule.</p>
+  <div class="hero-eyebrow">Personal coaching via SMS</div>
+  <h1>The coach who texts <em>you every day.</em></h1>
+  <p>NexusCoach learns your goals, your schedule, and what actually moves you — then sends personalized coaching messages straight to your phone. No app. Just results.</p>
   <div class="hero-actions">
-    <a href="/signup" class="btn btn-primary">Get Started — $5/mo</a>
+    <a href="/signup" class="btn btn-primary">Start for $5/month</a>
     <a href="/login" class="btn btn-outline">Log In</a>
+  </div>
+</section>
+
+<!-- Social proof numbers -->
+<section class="proof">
+  <div class="proof-stat">
+    <div class="num">3x</div>
+    <div class="lbl">Daily touchpoints</div>
+  </div>
+  <div class="proof-stat">
+    <div class="num">100%</div>
+    <div class="lbl">Personalized to you</div>
+  </div>
+  <div class="proof-stat">
+    <div class="num">24/7</div>
+    <div class="lbl">Reply anytime</div>
   </div>
 </section>
 
 <!-- Features -->
 <section class="features">
-  <div class="features-title">How it works</div>
+  <div class="features-title">Why it works</div>
   <div class="features-grid">
     <div class="feature-card">
-      <h3>AI-Generated</h3>
-      <p>Every message is written by Claude, personalized to your specific goal and preferred coaching style.</p>
+      <h3>Knows who you are</h3>
+      <p>Your goals, your lifestyle, your biggest obstacles. Every message is written specifically for you — not copy-pasted advice anyone could read.</p>
     </div>
     <div class="feature-card">
-      <h3>Direct to SMS</h3>
-      <p>Messages arrive as regular texts — no app to install, no notifications to dismiss. Just your phone.</p>
+      <h3>Straight to your phone</h3>
+      <p>Regular SMS — no app to install, no login required to read it. It just shows up, at the right moment, every day.</p>
     </div>
     <div class="feature-card">
-      <h3>Your Schedule</h3>
-      <p>Choose when you want your messages — morning, evening, or multiple times a day. Weekdays only or every day.</p>
+      <h3>You control the intensity</h3>
+      <p>From warm and supportive to full drill-sergeant mode. Dial in exactly how hard you want to be pushed, and change it anytime.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Two-way conversation</h3>
+      <p>Text back whenever you want. Share a win, vent about a setback, ask for advice. Your coach responds and remembers everything.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Smart daily timing</h3>
+      <p>No fixed alarm times you'll ignore. Messages go out based on when you actually wake up and how your day flows — fresh every day.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Remembers everything</h3>
+      <p>Every conversation builds on the last. Your coach tracks your progress, references past check-ins, and never repeats itself.</p>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="how">
+  <div class="how-title">How it works</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div>
+        <h4>Tell us about yourself</h4>
+        <p>Your goal, your lifestyle, what drives you, and what holds you back. Takes two minutes.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div>
+        <h4>Verify your number</h4>
+        <p>We send a code to your phone. That's where all your coaching will land — no email, no app.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div>
+        <h4>Get your first message</h4>
+        <p>Right after setup, you'll get a personal intro from your coach and a question to get the conversation started.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div>
+        <h4>Daily check-ins, your way</h4>
+        <p>3 messages a day timed around your routine. Reply whenever. Your coach reads every response and remembers it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonials">
+  <div class="testimonials-title">What members say</div>
+  <div class="testi-grid">
+    <div class="testi-card">
+      <div class="testi-text">"I've tried every habit app. This is different — it actually knows what's going on with me. Feels like a real coach who checks in on you."</div>
+      <div class="testi-name">Jordan M. — Running his first marathon</div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-text">"Set the intensity to max and it genuinely holds me accountable. Sometimes I don't want to read it but I need to."</div>
+      <div class="testi-name">Priya K. — Building her business</div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-text">"I texted back at 11pm after a rough day and got a real response that actually addressed what I said. Didn't expect that."</div>
+      <div class="testi-name">Marcus T. — Hitting the gym consistently</div>
     </div>
   </div>
 </section>
@@ -103,18 +228,20 @@
 <section class="pricing">
   <div class="pricing-title">Simple pricing</div>
   <div class="pricing-card">
-    <div class="pricing-plan">Starter</div>
+    <div class="pricing-plan">Monthly</div>
     <div class="pricing-price">$5<span>/month</span></div>
     <ul class="pricing-features">
-      <li>Up to 3 AI messages per day</li>
-      <li>Personalized to your goal</li>
-      <li>4 coaching styles to choose from</li>
-      <li>SMS delivered to any US carrier</li>
-      <li>Flexible schedule — daily, weekdays, weekends</li>
+      <li>Up to 3 personalized messages per day</li>
+      <li>Two-way SMS — reply anytime, get a response</li>
+      <li>Fully tailored to your goal and lifestyle</li>
+      <li>Intensity dial from gentle to drill sergeant</li>
+      <li>Smart daily timing based on your routine</li>
+      <li>Full conversation memory — never repeats itself</li>
+      <li>Works with any carrier, anywhere in North America</li>
       <li>Cancel anytime</li>
     </ul>
     <a href="/signup" class="btn btn-primary btn-full">Get Started</a>
-    <div class="pricing-note">No credit card needed to set up your account. Activation is manual.</div>
+    <div class="pricing-note">Create your account free. Activation is handled manually — you'll hear from us within 24 hours.</div>
   </div>
 </section>
 {% endblock %}

@@ -162,11 +162,11 @@
       </div>
       <div class="profile-item">
         <div class="pi-label">Schedule</div>
-        <div class="pi-val">{{ times | join(', ') if times else '—' }}</div>
+        <div class="pi-val">AI-picked daily</div>
       </div>
       <div class="profile-item">
-        <div class="pi-label">Frequency</div>
-        <div class="pi-val">{{ {'daily':'Every day','weekdays':'Weekdays','weekends':'Weekends'}.get(user['freq'] or 'daily','—') }}</div>
+        <div class="pi-label">Timezone</div>
+        <div class="pi-val">{{ user['tz'] or 'US/Eastern' }}</div>
       </div>
     </div>
   </div>
