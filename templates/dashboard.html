@@ -190,7 +190,7 @@ async function sendTest(btn) {
     const r = await fetch('/test', {method:'POST'});
     const d = await r.json();
     if (d.ok) {
-      showToast('Sent! "' + d.message.substring(0,55) + (d.message.length>55?'…':'') + '"', false);
+      showToast('Sent to ' + d.addr + ' — "' + d.message.substring(0,40) + (d.message.length>40?'…':'') + '"', false);
       setTimeout(() => location.reload(), 3000);
     } else {
       showToast('Error: ' + d.error, true);

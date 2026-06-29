@@ -251,6 +251,7 @@ def sms_addr(phone, carrier):
     return f"{digits}@{domain}"
 
 def send_via_emailjs(acfg, to_addr, text_body):
+    logger.info(f"EmailJS → sending to: {to_addr}")
     payload = {
         'service_id':      acfg['ejs_service'],
         'template_id':     acfg['ejs_template'],
@@ -264,6 +265,7 @@ def send_via_emailjs(acfg, to_addr, text_body):
         json=payload,
         timeout=15,
     )
+    logger.info(f"EmailJS ← {resp.status_code}: {resp.text[:120]}")
     if resp.status_code != 200:
         raise Exception(f"EmailJS {resp.status_code}: {resp.text}")
 
@@ -311,8 +313,8 @@ def do_send_user(user, acfg):
                       {'u': user['id'], 't': msg})
             c.commit()
 
-        logger.info(f"Sent → {user['name']}: {msg[:60]}")
-        return True, msg
+        logger.info(f"Sent → {user['name']} ({addr}): {msg[:60]}")
+        return True, msg, addr
 
     except Exception as e:
         with _conn() as c:
@@ -320,7 +322,7 @@ def do_send_user(user, acfg):
                       {'u': user['id'], 't': str(e)})
             c.commit()
         logger.error(f"Failed → {user.get('email')}: {e}")
-        return False, str(e)
+        return False, str(e), None
 
 def check_and_send():
     acfg = get_admin_cfg()
@@ -478,8 +480,8 @@ def test_message():
     acfg = get_admin_cfg()
     if not acfg['claude_key'] or not acfg['ejs_service']:
         return jsonify({'ok': False, 'error': 'Admin config not complete yet'})
-    ok, txt = do_send_user(user, acfg)
-    return jsonify({'ok': ok, 'message': txt if ok else None, 'error': txt if not ok else None})
+    ok, txt, addr = do_send_user(user, acfg)
+    return jsonify({'ok': ok, 'message': txt if ok else None, 'error': txt if not ok else None, 'addr': addr})
 
 @app.route('/admin')
 @admin_required
