@@ -419,16 +419,6 @@ def debug_info():
         'session_user_id': session.get('user_id'),
     })
 
-@app.route('/wipe-db-fresh-start-confirm')
-def wipe_db():
-    with engine.connect() as c:
-        c.execute(text('DROP TABLE IF EXISTS history'))
-        c.execute(text('DROP TABLE IF EXISTS users'))
-        c.execute(text('DROP TABLE IF EXISTS settings'))
-        c.commit()
-    init_db()
-    migrate_db()
-    return 'Done — database wiped and recreated. Remove this route now.'
 
 @app.route('/webhook/sms', methods=['POST'])
 def sms_webhook():
