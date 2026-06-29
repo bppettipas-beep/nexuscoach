@@ -353,6 +353,20 @@ def icons(filename):
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
+@app.route('/debug')
+def debug_info():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    db = get_db()
+    user_count = db.execute(text('SELECT COUNT(*) FROM users')).fetchone()[0]
+    return jsonify({
+        'database': 'postgresql' if IS_PG else 'sqlite',
+        'db_url_prefix': _raw_url[:30] + '...',
+        'secret_key_prefix': app.secret_key[:8] + '...',
+        'user_count': user_count,
+        'session_user_id': session.get('user_id'),
+    })
+
 @app.route('/')
 def landing():
     if 'user_id' in session:
@@ -538,6 +552,8 @@ def delete_user(uid):
 # ── Start ─────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
+    logger.info(f"Database: {'PostgreSQL' if IS_PG else 'SQLite'} ({_raw_url[:40]}...)")
+    logger.info(f"Secret key source: {'env var' if os.environ.get('SECRET_KEY') else 'file/generated'}")
     init_db()
     scheduler.add_job(check_and_send, 'interval', seconds=60, id='msg_job')
     scheduler.start()
