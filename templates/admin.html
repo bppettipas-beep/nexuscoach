@@ -98,7 +98,7 @@
           <input class="form-control" type="text" name="ejs_template"
                  value="{{ cfg.ejs_template or '' }}" placeholder="template_xxxxxxx">
         </div>
-        <div class="form-group" style="grid-column:1/-1">
+        <div class="form-group">
           <label>EmailJS Public Key</label>
           <div class="pw-wrap">
             <input class="form-control" type="password" name="ejs_pubkey" id="ejspk"
@@ -106,12 +106,17 @@
             <button type="button" class="pw-toggle" onclick="toggle('ejspk')">show</button>
           </div>
         </div>
+        <div class="form-group">
+          <label>EmailJS Private Key</label>
+          <div class="pw-wrap">
+            <input class="form-control" type="password" name="ejs_privkey" id="ejspriv"
+                   placeholder="{{ '••••••••' + cfg.ejs_privkey[-4:] if cfg.ejs_privkey else 'Your EmailJS private key' }}">
+            <button type="button" class="pw-toggle" onclick="toggle('ejspriv')">show</button>
+          </div>
+        </div>
       </div>
       <div class="alert alert-warn" style="font-size:.8rem;margin-bottom:1rem">
-        <strong>EmailJS setup (2 min):</strong> Sign up free at emailjs.com → Email Services → connect Gmail →
-        Email Templates → create template with <code style="background:rgba(255,255,255,.1);padding:.1rem .3rem;border-radius:4px">{{"{{"}}to_email{{"}}"}}</code> as To and
-        <code style="background:rgba(255,255,255,.1);padding:.1rem .3rem;border-radius:4px">{{"{{"}}message{{"}}"}}</code> as body →
-        Account → copy Public Key.
+        <strong>Private Key:</strong> EmailJS dashboard → Account → Security → scroll down to find your Private Key.
       </div>
 
       <div class="toggle-row">

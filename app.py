@@ -134,6 +134,7 @@ def get_admin_cfg():
         'ejs_service':  get_setting('ejs_service'),
         'ejs_template': get_setting('ejs_template'),
         'ejs_pubkey':   get_setting('ejs_pubkey'),
+        'ejs_privkey':  get_setting('ejs_privkey'),
         'daily_limit':  int(get_setting('daily_limit', '3')),
         'paused':       get_setting('paused', '0') == '1',
     }
@@ -250,14 +251,17 @@ def sms_addr(phone, carrier):
     return f"{digits}@{domain}"
 
 def send_via_emailjs(acfg, to_addr, text_body):
+    payload = {
+        'service_id':      acfg['ejs_service'],
+        'template_id':     acfg['ejs_template'],
+        'user_id':         acfg['ejs_pubkey'],
+        'template_params': {'to_email': to_addr, 'message': text_body},
+    }
+    if acfg.get('ejs_privkey'):
+        payload['accessToken'] = acfg['ejs_privkey']
     resp = requests.post(
         'https://api.emailjs.com/api/v1.0/email/send',
-        json={
-            'service_id':  acfg['ejs_service'],
-            'template_id': acfg['ejs_template'],
-            'user_id':     acfg['ejs_pubkey'],
-            'template_params': {'to_email': to_addr, 'message': text_body},
-        },
+        json=payload,
         timeout=15,
     )
     if resp.status_code != 200:
@@ -454,7 +458,7 @@ def dashboard():
     """), {'uid': user['id']}).fetchall()
     hist  = [{'text': r[0], 'ok': r[1], 'sent_fmt': fmt_time(r[2])} for r in hist_rows]
     acfg  = get_admin_cfg()
-    ready = bool(acfg['claude_key'] and acfg['ejs_service'] and acfg['ejs_template'] and acfg['ejs_pubkey'])
+    ready = bool(acfg['claude_key'] and acfg['ejs_service'] and acfg['ejs_template'] and acfg['ejs_pubkey'] and acfg['ejs_privkey'])
     today = datetime.now().strftime('%Y-%m-%d')
     msgs_today = user.get('msgs_today', 0) if user.get('msgs_date') == today else 0
     times = json.loads(user.get('times') or '["08:00"]')
@@ -498,7 +502,7 @@ def admin():
 def admin_config():
     f  = request.form
     db = get_db()
-    for key in ('claude_key', 'ejs_service', 'ejs_template', 'ejs_pubkey'):
+    for key in ('claude_key', 'ejs_service', 'ejs_template', 'ejs_pubkey', 'ejs_privkey'):
         val = f.get(key, '').strip()
         if val:
             _upsert_setting(db, key, val)
