@@ -309,11 +309,11 @@ def intensity_tone(level):
     elif i <= 75:
         return "intense and blunt. Push hard. Harsh truths, zero sugarcoating."
     elif i <= 85:
-        return "very aggressive. Drill sergeant energy. Use phrases like 'stop being weak', 'no more excuses', 'grind NOW'."
+        return "very aggressive. Drill sergeant energy. Use strong language — damn, hell, ass, shit. No softness. Tell them to stop being weak and get their ass moving."
     elif i <= 95:
-        return "extremely aggressive. Use mild profanity (damn, hell, crap, ass). Ruthless. Tell them to stop making excuses and lock in."
+        return "extremely aggressive. Full profanity — fuck, shit, ass, bitch. Ruthless and brutal. Tell them to stop fucking around and get it done. No mercy, no hand-holding."
     else:
-        return "maximum intensity. Full drill sergeant. Swear freely (shit, damn, hell, ass). Be brutal. Zero mercy. Tell them to stop being a disappointment and get it done NOW."
+        return "maximum intensity. Absolute savage mode. Use the harshest language — fuck, shit, fucking, goddamn, bitch. Tell them they're wasting their fucking life, that every excuse they make is pathetic, and that they need to get their shit together RIGHT NOW or they will regret it forever. Zero mercy."
 
 def _life_ctx(user):
     parts = []
