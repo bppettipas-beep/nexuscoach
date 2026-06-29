@@ -367,6 +367,71 @@ def debug_info():
         'session_user_id': session.get('user_id'),
     })
 
+@app.route('/webhook/sms', methods=['POST'])
+def sms_webhook():
+    from_number = request.form.get('From', '')
+    body        = request.form.get('Body', '').strip()
+    logger.info(f"Incoming SMS from {from_number}: {body}")
+
+    digits = ''.join(filter(str.isdigit, from_number))[-10:]
+    with _conn() as c:
+        row = c.execute(text(
+            'SELECT * FROM users WHERE phone LIKE :d AND is_active=1'
+        ), {'d': f'%{digits}'}).mappings().fetchone()
+        user = dict(row) if row else None
+
+    def twiml(msg):
+        return f'<?xml version="1.0" encoding="UTF-8"?><Response><Message>{msg}</Message></Response>', 200, {'Content-Type': 'text/xml'}
+
+    if not user:
+        return twiml("Hey! I don't recognize this number. Sign up at nexuscoach.app to get started.")
+
+    acfg = get_admin_cfg()
+    if not acfg['claude_key']:
+        return twiml("Hey! Something's off on our end — try again soon.")
+
+    with _conn() as c:
+        hist = c.execute(text(
+            'SELECT text, ok FROM history WHERE user_id=:uid ORDER BY sent_at DESC LIMIT 6'
+        ), {'uid': user['id']}).fetchall()
+
+    recent = '\n'.join([f"Coach: {r[0]}" for r in reversed(hist) if r[1]])
+
+    style_desc = {
+        'gentle':        'warm, gentle, and encouraging',
+        'tough':         'direct, no-nonsense, tough-love',
+        'inspirational': 'poetic, profound, and deeply uplifting',
+        'practical':     'practical, action-oriented, and concrete',
+    }.get(user.get('style') or 'gentle', 'warm and encouraging')
+
+    prompt = (
+        f"You are NexusCoach, a {style_desc} coach.\n"
+        f"User's goal: {user['goal']}\n"
+        f"Recent messages you sent them:\n{recent}\n\n"
+        f"They just replied: \"{body}\"\n\n"
+        "Write a short, personal response (under 155 characters). "
+        "Acknowledge what they said, keep coaching them toward their goal. "
+        "No hashtags, no quotes, just the reply text."
+    )
+
+    try:
+        client = anthropic.Anthropic(api_key=acfg['claude_key'])
+        resp   = client.messages.create(
+            model='claude-sonnet-4-6',
+            max_tokens=80,
+            messages=[{'role': 'user', 'content': prompt}]
+        )
+        reply = resp.content[0].text.strip().strip('"\'')
+        with _conn() as c:
+            c.execute(text('INSERT INTO history (user_id,text,ok) VALUES (:u,:t,1)'),
+                      {'u': user['id'], 't': f'[Reply] {reply}'})
+            c.commit()
+    except Exception as e:
+        logger.error(f"Webhook reply error: {e}")
+        reply = "Got your message! Keep pushing — you're doing great."
+
+    return twiml(reply)
+
 @app.route('/')
 def landing():
     if 'user_id' in session:
