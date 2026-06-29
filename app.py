@@ -797,6 +797,19 @@ def admin_conversations():
     """)).mappings().fetchall()
     return render_template('conversations.html', users=[dict(u) for u in users])
 
+@app.route('/admin/users/<int:uid>/set-password', methods=['POST'])
+@admin_required
+def admin_set_password(uid):
+    data   = request.get_json(silent=True) or {}
+    new_pw = data.get('password', '').strip()
+    if len(new_pw) < 6:
+        return jsonify({'ok': False, 'error': 'Password must be at least 6 characters.'})
+    db = get_db()
+    db.execute(text('UPDATE users SET password_hash=:h WHERE id=:id'),
+               {'h': generate_password_hash(new_pw), 'id': uid})
+    db.commit()
+    return jsonify({'ok': True})
+
 @app.route('/admin/conversations/<int:uid>/messages')
 @admin_required
 def conversation_messages(uid):

@@ -157,6 +157,21 @@
         <button class="btn-close-drawer" onclick="toggleDrawer()">✕</button>
       </div>
       <div class="acct-fields" id="acct-fields"></div>
+      <div style="padding:1.1rem 1.25rem;border-top:1px solid rgba(255,255,255,.07)">
+        <div class="af-label" style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.25);margin-bottom:.55rem">Set New Password</div>
+        <div style="display:flex;gap:.5rem">
+          <input type="password" id="new-pw" placeholder="New password" autocomplete="new-password"
+                 style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+                        border-radius:8px;padding:.4rem .7rem;font-size:.84rem;color:#fff;outline:none">
+          <button onclick="setPassword()"
+                  style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+                         border-radius:8px;padding:.4rem .85rem;font-size:.82rem;font-weight:600;
+                         color:#fff;cursor:pointer;white-space:nowrap;transition:background .15s"
+                  onmouseover="this.style.background='rgba(255,255,255,.18)'"
+                  onmouseout="this.style.background='rgba(255,255,255,.1)'">Set</button>
+        </div>
+        <div id="pw-msg" style="font-size:.75rem;margin-top:.4rem;min-height:1em"></div>
+      </div>
     </div>
   </div>
 
@@ -228,7 +243,6 @@ function renderAccountDetails(u) {
     { label: 'Account Status',  val: null,    badge: u.active   ? ['Active','badge-ok']   : ['Pending','badge-no'] },
     { label: 'Phone Verified',  val: null,    badge: u.verified ? ['Verified','badge-ok'] : ['Unverified','badge-no'] },
     { label: 'Member Since',    val: fmtTime(u.created) || '—', mono: false },
-    { label: 'Password Hash',   val: u.pw_hash || '—', mono: true, note: 'bcrypt — cannot be reversed' },
   ];
   const box = document.getElementById('acct-fields');
   box.innerHTML = fields.map(f => {
@@ -277,6 +291,36 @@ function renderMessages(msgs, doScroll) {
     box.appendChild(wrap);
   });
   if (doScroll) box.scrollTop = box.scrollHeight;
+}
+
+async function setPassword() {
+  const inp = document.getElementById('new-pw');
+  const msg = document.getElementById('pw-msg');
+  const pw  = inp.value.trim();
+  if (pw.length < 6) {
+    msg.textContent = 'Must be at least 6 characters.';
+    msg.style.color = 'rgba(255,100,100,.7)';
+    return;
+  }
+  try {
+    const r = await fetch(`/admin/users/${activeUid}/set-password`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({password: pw}),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      msg.textContent = 'Password updated.';
+      msg.style.color = 'rgba(80,255,120,.7)';
+      inp.value = '';
+    } else {
+      msg.textContent = d.error || 'Error.';
+      msg.style.color = 'rgba(255,100,100,.7)';
+    }
+  } catch(e) {
+    msg.textContent = 'Request failed.';
+    msg.style.color = 'rgba(255,100,100,.7)';
+  }
 }
 
 function escHtml(s) {
