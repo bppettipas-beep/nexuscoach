@@ -4,3 +4,5 @@ apscheduler>=3.10.0
 pytz>=2024.1
 werkzeug>=3.0.0
 requests>=2.31.0
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
