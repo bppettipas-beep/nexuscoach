@@ -342,6 +342,41 @@ def generate_message(user, acfg):
     )
     return resp.content[0].text.strip().strip('"\'')
 
+def send_welcome_sms(user, acfg):
+    if not acfg.get('claude_key') or not acfg.get('twilio_sid'):
+        return
+    tone      = intensity_tone(user.get('intensity', 50))
+    life_parts = []
+    if user.get('q_lifestyle'):   life_parts.append(user['q_lifestyle'])
+    if user.get('q_motivation'):  life_parts.append(f"focused on {user['q_motivation'].lower()}")
+    if user.get('q_obstacle'):    life_parts.append(f"struggles with {user['q_obstacle'].lower()}")
+    life_ctx = ', '.join(life_parts) if life_parts else ''
+    prompt = (
+        f"You are NexusCoach texting {user['name']} for the very first time.\n"
+        f"Their goal: {user['goal']}\n"
+        f"About them: {life_ctx}\n"
+        f"Tone: {tone}\n\n"
+        "Write a welcome SMS under 155 characters that:\n"
+        "1. Greets them by first name\n"
+        "2. Briefly acknowledges their specific goal\n"
+        "3. Ends with ONE short engaging question to start the conversation\n"
+        "No hashtags, no quotes, just the message text."
+    )
+    try:
+        client = anthropic.Anthropic(api_key=acfg['claude_key'])
+        resp   = client.messages.create(
+            model='claude-sonnet-4-6', max_tokens=100,
+            messages=[{'role': 'user', 'content': prompt}]
+        )
+        msg = resp.content[0].text.strip().strip('"\'')
+        send_via_twilio(acfg, user['phone'], msg)
+        with _conn() as c:
+            c.execute(text('INSERT INTO history (user_id,text,ok) VALUES (:u,:t,1)'),
+                      {'u': user['id'], 't': msg})
+            c.commit()
+    except Exception as e:
+        logger.error(f"Welcome SMS error: {e}")
+
 def do_send_user(user, acfg):
     try:
         today      = datetime.now().strftime('%Y-%m-%d')
@@ -536,6 +571,11 @@ def verify():
             db.execute(text('UPDATE users SET phone_verified=1 WHERE id=:id'),
                        {'id': session['user_id']})
             db.commit()
+            fresh = db.execute(text('SELECT * FROM users WHERE id=:id'),
+                               {'id': session['user_id']}).mappings().fetchone()
+            if fresh:
+                acfg = get_admin_cfg()
+                send_welcome_sms(dict(fresh), acfg)
             return redirect(url_for('dashboard'))
         else:
             error = 'Incorrect code. Check your texts and try again.'
