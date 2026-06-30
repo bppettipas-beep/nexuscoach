@@ -567,6 +567,10 @@ def generate_message(user, acfg):
 def send_welcome_sms(user, acfg):
     if not acfg.get('claude_key') or not acfg.get('twilio_sid'):
         return
+    with _conn() as c:
+        existing = c.execute(text('SELECT COUNT(*) FROM history WHERE user_id=:u'), {'u': user['id']}).scalar()
+    if existing:
+        return
     tone      = intensity_tone(user.get('intensity', 50))
     life_parts = []
     if user.get('q_lifestyle'):   life_parts.append(user['q_lifestyle'])
@@ -1154,10 +1158,6 @@ def activate_user(uid):
     db = get_db()
     db.execute(text('UPDATE users SET is_active=1 WHERE id=:id'), {'id': uid})
     db.commit()
-    user = db.execute(text('SELECT * FROM users WHERE id=:id'), {'id': uid}).mappings().fetchone()
-    if user:
-        acfg = get_admin_cfg()
-        send_welcome_sms(dict(user), acfg)
     return redirect(url_for('admin'))
 
 @app.route('/admin/users/<int:uid>/deactivate', methods=['POST'])
