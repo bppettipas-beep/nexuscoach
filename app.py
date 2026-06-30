@@ -823,6 +823,8 @@ def dashboard():
         session.clear()
         return redirect(url_for('login'))
     user = dict(user)
+    if user['is_admin']:
+        return redirect(url_for('admin'))
     hist_rows = db.execute(text("""
         SELECT text, ok, sent_at FROM history
         WHERE user_id=:uid ORDER BY sent_at DESC LIMIT 20
