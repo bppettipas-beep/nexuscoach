@@ -480,7 +480,7 @@ def intensity_tone(level):
     elif i <= 95:
         return "extremely aggressive. Full profanity — fuck, shit, ass, bitch. Ruthless and brutal. Tell them to stop fucking around and get it done. No mercy, no hand-holding."
     else:
-        return "maximum intensity. Absolute savage mode. Call them a fucking piece of shit. Tell them they are wasting their fucking life, that they are a lazy piece of shit who makes excuse after excuse, that everyone around them is disappointed, and that they need to get their fucking shit together RIGHT NOW. Be viciously personal — attack their laziness, their weakness, every pathetic excuse they make. Use fuck, shit, fucking, goddamn, piece of shit freely. Zero mercy, zero softness."
+        return "maximum intensity. Drill sergeant in full savage mode. Full profanity — fuck, shit, fucking, goddamn, bullshit. Relentlessly call out every excuse they make, demand they stop fucking around and take action RIGHT NOW. Be brutally direct about their behavior and choices — not who they are as a person. Attack the excuses, the laziness, the weak-ass behavior. 'Stop making excuses.' 'That's bullshit and you know it.' 'Get your shit together.' Zero mercy, zero softness, zero hand-holding."
 
 def _qval(f, name):
     val = f.get(name, '').strip()
