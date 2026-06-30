@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Grant Admin Access — NexusCoach{% endblock %}
+
+{% block style %}
+.ga-wrap{max-width:480px;margin:3rem auto;padding:0 1.5rem}
+.ga-wrap h1{font-size:1.4rem;font-weight:800;margin-bottom:.3rem}
+.ga-wrap .sub{font-size:.86rem;color:rgba(255,255,255,.35);margin-bottom:2rem}
+.step-indicator{display:flex;gap:.5rem;margin-bottom:2rem}
+.step-dot{
+  width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:700;color:rgba(255,255,255,.3);
+}
+.step-dot.active{background:#fff;color:#000;border-color:#fff}
+.step-dot.done{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.6)}
+.step-line{flex:1;height:1px;background:rgba(255,255,255,.1);align-self:center}
+.warn-box{
+  background:rgba(255,180,50,.06);border:1px solid rgba(255,180,50,.2);
+  border-radius:12px;padding:1.1rem 1.25rem;margin-bottom:1.5rem;
+  font-size:.86rem;color:rgba(255,200,80,.7);line-height:1.6;
+}
+.target-card{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;
+}
+.target-card .tc-name{font-weight:700;font-size:1rem;margin-bottom:.2rem}
+.target-card .tc-sub{font-size:.8rem;color:rgba(255,255,255,.35);font-family:monospace}
+{% endblock %}
+
+{% block content %}
+<div class="ga-wrap">
+  <a href="/admin" style="font-size:.8rem;color:rgba(255,255,255,.35);display:block;margin-bottom:1.5rem">← Back to admin</a>
+  <h1>Grant Admin Access</h1>
+  <p class="sub">Only you (the original admin) can do this. Choose carefully — admins can manage all users.</p>
+
+  <!-- Step indicator -->
+  <div class="step-indicator">
+    <div class="step-dot {{ 'active' if step=='1' else 'done' }}">1</div>
+    <div class="step-line"></div>
+    <div class="step-dot {{ 'active' if step=='2' else ('done' if step=='3' else '') }}">2</div>
+    <div class="step-line"></div>
+    <div class="step-dot {{ 'active' if step=='3' else '' }}">3</div>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  {% if step == '1' %}
+  <!-- Step 1: Pick a user -->
+  <div class="card">
+    <div class="section-label">Step 1 — Select user</div>
+    <form method="POST" action="/admin/grant-admin">
+      <input type="hidden" name="step" value="1">
+      <div class="form-group" style="margin-bottom:1.25rem">
+        <label>Choose an account to promote</label>
+        <select class="form-control" name="uid" required>
+          <option value="">— Select a user —</option>
+          {% for u in non_admins %}
+          <option value="{{ u.id }}">{{ u.name }} — {{ u.email }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Continue →</button>
+    </form>
+  </div>
+
+  {% elif step == '2' %}
+  <!-- Step 2: Type confirmation -->
+  <div class="card">
+    <div class="section-label">Step 2 — Confirm</div>
+    <div class="target-card">
+      <div class="tc-name">{{ target.name }}</div>
+      <div class="tc-sub">{{ target.email }}</div>
+    </div>
+    <div class="warn-box">
+      ⚠ This will give <strong>{{ target.name }}</strong> full admin access — they can view all conversations, activate/deactivate users, send messages, and manage credentials. This cannot be undone from the UI.
+    </div>
+    <form method="POST" action="/admin/grant-admin">
+      <input type="hidden" name="step" value="2">
+      <input type="hidden" name="uid" value="{{ uid }}">
+      <div class="form-group" style="margin-bottom:1.25rem">
+        <label>Type <strong style="color:#fff;font-family:monospace">GRANT ADMIN</strong> to continue</label>
+        <input class="form-control" type="text" name="confirm" placeholder="GRANT ADMIN" autocomplete="off" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Continue →</button>
+    </form>
+  </div>
+
+  {% elif step == '3' %}
+  <!-- Step 3: Enter your password -->
+  <div class="card">
+    <div class="section-label">Step 3 — Verify your identity</div>
+    <div class="target-card">
+      <div class="tc-name">{{ target.name }}</div>
+      <div class="tc-sub">{{ target.email }}</div>
+    </div>
+    <form method="POST" action="/admin/grant-admin">
+      <input type="hidden" name="step" value="3">
+      <input type="hidden" name="uid" value="{{ uid }}">
+      <div class="form-group" style="margin-bottom:1.25rem">
+        <label>Your admin password</label>
+        <input class="form-control" type="password" name="password" placeholder="Your password" required autofocus>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" style="background:rgba(255,80,80,.8);color:#fff">
+        Grant Admin Access
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

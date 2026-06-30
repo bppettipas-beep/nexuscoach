@@ -2,77 +2,153 @@
 {% block title %}Admin Panel — NexusCoach{% endblock %}
 
 {% block style %}
-.admin-wrap{max-width:900px;margin:0 auto;padding:2rem 1.5rem 3rem}
-.admin-wrap h1{font-size:1.6rem;font-weight:800;margin-bottom:.3rem}
-.admin-wrap > p{font-size:.88rem;color:rgba(255,255,255,.35);margin-bottom:2rem}
+.admin-wrap{max-width:1060px;margin:0 auto;padding:2rem 1.5rem 4rem}
 
+/* Header */
+.admin-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
+.admin-head h1{font-size:1.6rem;font-weight:800;margin:0}
+.admin-head-actions{display:flex;gap:.6rem;flex-wrap:wrap}
+
+/* Stat cards */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.85rem;margin-bottom:2rem}
+.stat-card{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;padding:1.25rem 1.4rem;
+}
+.stat-card .sc-val{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1}
+.stat-card .sc-lbl{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);margin-top:.4rem}
+.sc-green{color:#4ade80}
+.sc-white{color:#fff}
+.sc-dim{color:rgba(255,255,255,.5)}
+
+/* System status */
+.status-bar{
+  display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:.9rem 1.25rem;margin-bottom:2rem;font-size:.82rem;
+}
+.status-item{display:flex;align-items:center;gap:.45rem;color:rgba(255,255,255,.5)}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.s-green{background:#4ade80;box-shadow:0 0 6px #4ade80}
+.s-red{background:#f87171;box-shadow:0 0 6px #f87171}
+.s-gray{background:rgba(255,255,255,.2)}
+.status-item strong{color:rgba(255,255,255,.8)}
+
+/* Config */
 .pw-wrap{position:relative}
 .pw-wrap input{padding-right:2.6rem}
-.pw-toggle{
-  position:absolute;right:.75rem;top:50%;transform:translateY(-50%);
-  background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);
-  font-size:.95rem;padding:0;line-height:1;transition:color .2s;
-}
+.pw-toggle{position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);font-size:.95rem;padding:0;line-height:1;transition:color .2s}
 .pw-toggle:hover{color:rgba(255,255,255,.7)}
-
 .save-row{display:flex;justify-content:flex-end;margin-top:1rem}
-
-/* Users table */
-.users-table{width:100%;border-collapse:collapse;font-size:.86rem}
-.users-table th{
-  text-align:left;padding:.6rem .85rem;
-  font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
-  color:rgba(255,255,255,.3);border-bottom:1px solid rgba(255,255,255,.08);
-}
-.users-table td{
-  padding:.75rem .85rem;border-bottom:1px solid rgba(255,255,255,.05);
-  vertical-align:middle;
-}
-.users-table tr:last-child td{border-bottom:none}
-.users-table .name-cell{font-weight:600}
-.users-table .email-cell{color:rgba(255,255,255,.4);font-size:.82rem}
-.action-group{display:flex;gap:.4rem;flex-wrap:wrap}
-
 .config-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 @media(max-width:560px){.config-grid{grid-template-columns:1fr}}
-
 .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-top:1px solid rgba(255,255,255,.07)}
 .toggle-row label{font-size:.9rem;font-weight:600}
-.toggle-row p{font-size:.78rem;color:rgba(255,255,255,.35);margin-top:.15rem}
 .toggle-switch input{display:none}
-.toggle-switch label{
-  display:block;width:42px;height:24px;background:rgba(255,255,255,.1);
-  border-radius:12px;cursor:pointer;position:relative;transition:background .2s;
-}
-.toggle-switch label::after{
-  content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;
-  background:#fff;border-radius:9px;transition:transform .2s;
-}
+.toggle-switch label{display:block;width:42px;height:24px;background:rgba(255,255,255,.1);border-radius:12px;cursor:pointer;position:relative;transition:background .2s}
+.toggle-switch label::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:9px;transition:transform .2s}
 .toggle-switch input:checked+label{background:rgba(255,80,80,.5)}
 .toggle-switch input:checked+label::after{transform:translateX(18px)}
 
-.stat-pill{
-  display:inline-block;padding:.18rem .55rem;border-radius:10px;
-  font-size:.74rem;font-weight:600;
+/* Users table */
+.table-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;flex-wrap:wrap;gap:.5rem}
+.table-search{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:.38rem .8rem;font-size:.84rem;color:#fff;outline:none;width:220px;
 }
+.table-search::placeholder{color:rgba(255,255,255,.25)}
+.table-search:focus{border-color:rgba(255,255,255,.25)}
+.users-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.users-table th{text-align:left;padding:.55rem .85rem;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.25);border-bottom:1px solid rgba(255,255,255,.07)}
+.users-table td{padding:.7rem .85rem;border-bottom:1px solid rgba(255,255,255,.045);vertical-align:middle}
+.users-table tr:last-child td{border-bottom:none}
+.users-table tr:hover td{background:rgba(255,255,255,.02)}
+.name-cell{font-weight:600;font-size:.88rem}
+.sub-cell{font-size:.76rem;color:rgba(255,255,255,.35);margin-top:.15rem;font-family:monospace}
+.action-group{display:flex;gap:.35rem;flex-wrap:wrap}
+.stat-pill{display:inline-block;padding:.18rem .55rem;border-radius:10px;font-size:.73rem;font-weight:600}
 .stat-active{background:rgba(80,255,120,.1);color:#7effaa}
 .stat-inactive{background:rgba(255,255,255,.07);color:rgba(255,255,255,.35)}
+.stat-admin{background:rgba(160,120,255,.1);color:#c0a0ff}
+.stat-unverified{background:rgba(255,180,50,.08);color:rgba(255,200,80,.6)}
+
+/* Inline send-message result */
+.send-result{font-size:.75rem;margin-top:.3rem;display:none}
+
+/* User detail expand row */
+.detail-row{display:none}
+.detail-row.open{display:table-row}
+.detail-inner{
+  padding:.85rem 1rem;
+  background:rgba(255,255,255,.025);
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem}
+.dg-item .dg-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.25);margin-bottom:.2rem}
+.dg-item .dg-val{font-size:.84rem;color:rgba(255,255,255,.7)}
 {% endblock %}
 
 {% block content %}
 <div class="admin-wrap">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
+
+  <!-- Header -->
+  <div class="admin-head">
     <h1>Admin Panel</h1>
-    <a href="/admin/conversations" class="btn btn-outline btn-sm">View Conversations</a>
+    <div class="admin-head-actions">
+      {% if is_super %}
+      <a href="/admin/grant-admin" class="btn btn-outline btn-sm">Grant Admin</a>
+      {% endif %}
+      <a href="/admin/conversations" class="btn btn-outline btn-sm">Conversations</a>
+      <a href="/dashboard" class="btn btn-outline btn-sm">Dashboard</a>
+    </div>
   </div>
-  <p>Configure API credentials and manage user subscriptions.</p>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="sc-val sc-white">{{ total_users }}</div>
+      <div class="sc-lbl">Total members</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-val sc-green">{{ active_users }}</div>
+      <div class="sc-lbl">Active members</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-val sc-white">{{ msgs_today }}</div>
+      <div class="sc-lbl">Messages today</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-val sc-dim">{{ msgs_all_time }}</div>
+      <div class="sc-lbl">All-time messages</div>
+    </div>
+  </div>
+
+  <!-- System status -->
+  <div class="status-bar">
+    <div class="status-item">
+      <span class="status-dot {{ 's-green' if cfg.claude_key else 's-red' }}"></span>
+      <span>Claude API: <strong>{{ 'Connected' if cfg.claude_key else 'Not configured' }}</strong></span>
+    </div>
+    <div class="status-item">
+      <span class="status-dot {{ 's-green' if cfg.twilio_sid else 's-red' }}"></span>
+      <span>Twilio: <strong>{{ 'Connected' if cfg.twilio_sid else 'Not configured' }}</strong></span>
+    </div>
+    <div class="status-item">
+      <span class="status-dot {{ 's-red' if cfg.paused else 's-green' }}"></span>
+      <span>Scheduler: <strong>{{ 'Paused' if cfg.paused else 'Running' }}</strong></span>
+    </div>
+    <div class="status-item">
+      <span class="status-dot s-green"></span>
+      <span>SMS from: <strong>{{ cfg.twilio_from or '—' }}</strong></span>
+    </div>
+  </div>
 
   <!-- API Config -->
   <div class="card card-glow" style="margin-bottom:1.25rem">
     <div class="section-label">API Configuration</div>
     {% if not cfg.claude_key or not cfg.twilio_sid %}
     <div class="alert alert-warn" style="margin-bottom:1.25rem">
-      Not configured yet. Fill in your Claude API key and Twilio credentials below.
+      Not fully configured. Fill in Claude and Twilio credentials below.
     </div>
     {% endif %}
 
@@ -82,7 +158,7 @@
           <label>Claude API Key</label>
           <div class="pw-wrap">
             <input class="form-control" type="password" name="claude_key" id="ck"
-                   placeholder="{{ '••••••••' + cfg.claude_key[-4:] if cfg.claude_key else 'sk-ant-...' }}">
+                   placeholder="{{ '••••' + cfg.claude_key[-4:] if cfg.claude_key else 'sk-ant-...' }}">
             <button type="button" class="pw-toggle" onclick="toggle('ck')">show</button>
           </div>
         </div>
@@ -94,13 +170,13 @@
         <div class="form-group">
           <label>Twilio Account SID</label>
           <input class="form-control" type="text" name="twilio_sid"
-                 value="{{ cfg.twilio_sid or '' }}" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                 value="{{ cfg.twilio_sid or '' }}" placeholder="ACxxxxxxxx...">
         </div>
         <div class="form-group">
           <label>Twilio Auth Token</label>
           <div class="pw-wrap">
             <input class="form-control" type="password" name="twilio_token" id="twtoken"
-                   placeholder="{{ '••••••••' + cfg.twilio_token[-4:] if cfg.twilio_token else 'Your auth token' }}">
+                   placeholder="{{ '••••' + cfg.twilio_token[-4:] if cfg.twilio_token else 'Auth token' }}">
             <button type="button" class="pw-toggle" onclick="toggle('twtoken')">show</button>
           </div>
         </div>
@@ -110,15 +186,10 @@
                  value="{{ cfg.twilio_from or '' }}" placeholder="+15551234567">
         </div>
       </div>
-      <div class="alert alert-warn" style="font-size:.8rem;margin-bottom:1rem">
-        <strong>Twilio setup:</strong> twilio.com → Console → copy Account SID and Auth Token → Phone Numbers → get a free number.
-        Trial accounts can only send to verified numbers — add yours under Verified Caller IDs.
-        Phone verification codes are sent via SMS using your Twilio number.
-      </div>
 
       <div class="toggle-row">
         <div>
-          <div class="toggle-label" style="font-size:.9rem;font-weight:600">Global Pause</div>
+          <div style="font-size:.9rem;font-weight:600">Global Pause</div>
           <div style="font-size:.78rem;color:rgba(255,255,255,.35);margin-top:.15rem">Stop all scheduled messages for all users</div>
         </div>
         <div class="toggle-switch">
@@ -135,66 +206,131 @@
 
   <!-- Users -->
   <div class="card">
-    <div class="section-label">Users ({{ users | length }})</div>
+    <div class="table-head">
+      <div class="section-label" style="margin:0">Members ({{ users | length }})</div>
+      <input class="table-search" id="usersearch" placeholder="Search name, email, phone..." oninput="filterUsers()">
+    </div>
+
     {% if users %}
     <div style="overflow-x:auto">
-      <table class="users-table">
+      <table class="users-table" id="users-table">
         <thead>
           <tr>
             <th>User</th>
             <th>Status</th>
-            <th>Setup</th>
-            <th>Today</th>
+            <th>Phone</th>
+            <th>Messages</th>
             <th>Joined</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for u in users %}
-          <tr>
+          <tr class="user-row"
+              data-name="{{ (u.name or '').lower() }}"
+              data-email="{{ (u.email or '').lower() }}"
+              data-phone="{{ (u.phone or '') }}">
             <td>
-              <div class="name-cell">{{ u['name'] }}{% if u['is_admin'] %} <span style="font-size:.7rem;color:rgba(160,120,255,.7)">(admin)</span>{% endif %}</div>
-              <div class="email-cell">{{ u['email'] }}</div>
+              <div class="name-cell">
+                {{ u.name }}
+                {% if u.is_admin %}<span class="stat-pill stat-admin" style="margin-left:.35rem">Admin</span>{% endif %}
+              </div>
+              <div class="sub-cell">{{ u.email }}</div>
             </td>
             <td>
-              {% if u['is_active'] %}
+              {% if u.is_admin %}
+                <span class="stat-pill stat-admin">Admin</span>
+              {% elif u.is_active %}
                 <span class="stat-pill stat-active">Active</span>
               {% else %}
                 <span class="stat-pill stat-inactive">Pending</span>
               {% endif %}
-            </td>
-            <td>
-              {% if u['setup_done'] %}
-                <span style="color:rgba(80,255,120,.6);font-size:.8rem">Done</span>
-              {% else %}
-                <span style="color:rgba(255,255,255,.25);font-size:.8rem">Not yet</span>
+              {% if u.phone and not u.phone_verified %}
+                <span class="stat-pill stat-unverified" style="margin-left:.25rem">Unverified</span>
               {% endif %}
+            </td>
+            <td style="font-family:monospace;font-size:.8rem;color:rgba(255,255,255,.45)">
+              {{ u.phone or '—' }}
             </td>
             <td>
               <span style="font-size:.84rem;color:rgba(255,255,255,.5)">
-                {{ u['msgs_today'] if u['msgs_date'] == today else 0 }}
+                {{ u.msgs_today if u.msgs_date == today else 0 }} today
               </span>
             </td>
-            <td><span style="font-size:.8rem;color:rgba(255,255,255,.35)">{{ u['joined'] }}</span></td>
+            <td><span style="font-size:.8rem;color:rgba(255,255,255,.35)">{{ u.joined }}</span></td>
             <td>
               <div class="action-group">
-                {% if not u['is_admin'] %}
-                  {% if u['is_active'] %}
-                  <form method="POST" action="/admin/users/{{ u['id'] }}/deactivate" style="display:contents">
+                <!-- Expand details -->
+                <button class="btn btn-outline btn-sm" onclick="toggleDetail({{ u.id }})">Details</button>
+
+                {% if not u.is_admin %}
+                  {% if u.is_active %}
+                  <form method="POST" action="/admin/users/{{ u.id }}/deactivate" style="display:contents">
                     <button type="submit" class="btn btn-outline btn-sm">Pause</button>
                   </form>
                   {% else %}
-                  <form method="POST" action="/admin/users/{{ u['id'] }}/activate" style="display:contents">
+                  <form method="POST" action="/admin/users/{{ u.id }}/activate" style="display:contents">
                     <button type="submit" class="btn btn-primary btn-sm">Activate</button>
                   </form>
                   {% endif %}
-                  <form method="POST" action="/admin/users/{{ u['id'] }}/delete" style="display:contents"
-                        onsubmit="return confirm('Delete {{ u['name'] }}? This cannot be undone.')">
+
+                  <button class="btn btn-outline btn-sm" id="send-btn-{{ u.id }}"
+                          onclick="sendMsg({{ u.id }})">Send Msg</button>
+
+                  <button class="btn btn-outline btn-sm"
+                          style="border-color:rgba(255,150,50,.25);color:rgba(255,170,70,.6)"
+                          onclick="clearHistory({{ u.id }}, '{{ u.name }}')">Clear History</button>
+
+                  <form method="POST" action="/admin/users/{{ u.id }}/delete" style="display:contents"
+                        onsubmit="return confirm('Permanently delete {{ u.name }}? Cannot be undone.')">
                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                   </form>
-                {% else %}
-                  <span style="font-size:.78rem;color:rgba(255,255,255,.2)">—</span>
                 {% endif %}
+              </div>
+              <div class="send-result" id="send-result-{{ u.id }}"></div>
+            </td>
+          </tr>
+          <!-- Detail expand row -->
+          <tr class="detail-row" id="detail-{{ u.id }}">
+            <td colspan="6" style="padding:0">
+              <div class="detail-inner">
+                <div class="detail-grid">
+                  <div class="dg-item">
+                    <div class="dg-label">Goal</div>
+                    <div class="dg-val">{{ (u.goal or '—')[:120] }}</div>
+                  </div>
+                  <div class="dg-item">
+                    <div class="dg-label">Intensity</div>
+                    <div class="dg-val">{{ u.intensity or 50 }}/100</div>
+                  </div>
+                  <div class="dg-item">
+                    <div class="dg-label">Timezone</div>
+                    <div class="dg-val">{{ u.tz or '—' }}</div>
+                  </div>
+                  <div class="dg-item">
+                    <div class="dg-label">Lifestyle</div>
+                    <div class="dg-val">{{ u.q_lifestyle or '—' }}</div>
+                  </div>
+                  <div class="dg-item">
+                    <div class="dg-label">Focus</div>
+                    <div class="dg-val">{{ u.q_motivation or '—' }}</div>
+                  </div>
+                  <div class="dg-item">
+                    <div class="dg-label">Obstacle</div>
+                    <div class="dg-val">{{ u.q_obstacle or '—' }}</div>
+                  </div>
+                  <div class="dg-item">
+                    <div class="dg-label">Setup done</div>
+                    <div class="dg-val">{{ 'Yes' if u.setup_done else 'No' }}</div>
+                  </div>
+                  <div class="dg-item">
+                    <div class="dg-label">User ID</div>
+                    <div class="dg-val" style="font-family:monospace">#{{ u.id }}</div>
+                  </div>
+                </div>
+                <div style="margin-top:.85rem">
+                  <a href="/admin/conversations?uid={{ u.id }}" class="btn btn-outline btn-sm">View Full Transcript</a>
+                </div>
               </div>
             </td>
           </tr>
@@ -204,10 +340,11 @@
     </div>
     {% else %}
     <div style="text-align:center;color:rgba(255,255,255,.25);font-size:.88rem;padding:1.5rem">
-      No users yet. Share your signup link to get started.
+      No users yet.
     </div>
     {% endif %}
   </div>
+
 </div>
 {% endblock %}
 
@@ -216,6 +353,58 @@
 function toggle(id){
   const el=document.getElementById(id);
   el.type=el.type==='password'?'text':'password';
+}
+
+function filterUsers(){
+  const q=document.getElementById('usersearch').value.toLowerCase().trim();
+  document.querySelectorAll('.user-row').forEach(row=>{
+    const match=!q||row.dataset.name.includes(q)||row.dataset.email.includes(q)||row.dataset.phone.includes(q);
+    row.style.display=match?'':'none';
+    // also hide/show its detail row
+    const uid=row.querySelector('[id^="detail-"]');
+    // detail rows don't have data attrs so just hide them when filtering
+    const detailId=row.querySelector('button[onclick^="toggleDetail"]')?.getAttribute('onclick')?.match(/\d+/)?.[0];
+    if(detailId){
+      const dr=document.getElementById('detail-'+detailId);
+      if(dr&&!match)dr.classList.remove('open');
+    }
+  });
+}
+
+function toggleDetail(uid){
+  const row=document.getElementById('detail-'+uid);
+  if(row)row.classList.toggle('open');
+}
+
+async function sendMsg(uid){
+  const btn=document.getElementById('send-btn-'+uid);
+  const res=document.getElementById('send-result-'+uid);
+  btn.disabled=true;btn.textContent='Sending…';
+  res.style.display='block';res.style.color='rgba(255,255,255,.4)';res.textContent='Generating…';
+  try{
+    const r=await fetch('/admin/users/'+uid+'/send-message',{method:'POST'});
+    const d=await r.json();
+    if(d.ok){
+      res.style.color='rgba(80,255,120,.7)';
+      res.textContent='Sent: "'+d.message.substring(0,60)+(d.message.length>60?'…':'')+'"';
+    }else{
+      res.style.color='rgba(255,100,100,.7)';
+      res.textContent='Error: '+d.error;
+    }
+  }catch(e){
+    res.style.color='rgba(255,100,100,.7)';res.textContent='Request failed.';
+  }
+  btn.disabled=false;btn.textContent='Send Msg';
+}
+
+async function clearHistory(uid,name){
+  if(!confirm('Clear all message history for '+name+'? This cannot be undone.'))return;
+  try{
+    const r=await fetch('/admin/users/'+uid+'/clear-history',{method:'POST'});
+    const d=await r.json();
+    if(d.ok)showToast('History cleared for '+name,false);
+    else showToast('Error clearing history',true);
+  }catch(e){showToast('Request failed',true);}
 }
 </script>
 {% endblock %}

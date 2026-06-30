@@ -664,6 +664,8 @@ def login():
             session['user_id'] = row['id']
             if row['phone'] and not row['phone_verified']:
                 return redirect(url_for('verify'))
+            if row['is_admin']:
+                return redirect(url_for('admin'))
             return redirect(url_for('dashboard'))
     return render_template('login.html', error=error)
 
@@ -845,16 +847,30 @@ def conversation_messages(uid):
 def admin():
     acfg  = get_admin_cfg()
     db    = get_db()
+    today = datetime.now().strftime('%Y-%m-%d')
     users = db.execute(text("""
-        SELECT id, name, email, is_admin, is_active, setup_done,
-               msgs_today, msgs_date, created_at
+        SELECT id, name, email, phone, is_admin, is_active, setup_done,
+               msgs_today, msgs_date, created_at, goal, tz, intensity,
+               q_lifestyle, q_motivation, q_obstacle, phone_verified
         FROM users ORDER BY created_at DESC
     """)).mappings().fetchall()
     users = [dict(u) for u in users]
-    today = datetime.now().strftime('%Y-%m-%d')
     for u in users:
         u['joined'] = fmt_time(u.get('created_at')) or '—'
-    return render_template('admin.html', cfg=acfg, users=users, today=today)
+    # stats
+    total_users   = len(users)
+    active_users  = sum(1 for u in users if u['is_active'] and not u['is_admin'])
+    msgs_today    = db.execute(text(
+        "SELECT COALESCE(SUM(msgs_today),0) FROM users WHERE msgs_date=:d AND is_admin=0"
+    ), {'d': today}).scalar() or 0
+    msgs_all_time = db.execute(text("SELECT COUNT(*) FROM history")).scalar() or 0
+    # is this the original (super) admin?
+    orig = db.execute(text("SELECT id FROM users WHERE is_admin=1 ORDER BY id ASC LIMIT 1")).fetchone()
+    is_super = orig and orig[0] == session['user_id']
+    return render_template('admin.html', cfg=acfg, users=users, today=today,
+                           total_users=total_users, active_users=active_users,
+                           msgs_today=msgs_today, msgs_all_time=msgs_all_time,
+                           is_super=is_super)
 
 @app.route('/admin/config', methods=['POST'])
 @admin_required
@@ -896,6 +912,79 @@ def delete_user(uid):
     db.execute(text('DELETE FROM users WHERE id=:id'), {'id': uid})
     db.commit()
     return redirect(url_for('admin'))
+
+@app.route('/admin/users/<int:uid>/send-message', methods=['POST'])
+@admin_required
+def admin_send_message(uid):
+    db   = get_db()
+    user = db.execute(text('SELECT * FROM users WHERE id=:id AND is_admin=0'),
+                      {'id': uid}).mappings().fetchone()
+    if not user:
+        return jsonify({'ok': False, 'error': 'User not found'})
+    acfg = get_admin_cfg()
+    if not acfg['claude_key'] or not acfg['twilio_sid']:
+        return jsonify({'ok': False, 'error': 'Admin config incomplete'})
+    ok, txt, addr = do_send_user(dict(user), acfg)
+    return jsonify({'ok': ok, 'message': txt if ok else None, 'error': txt if not ok else None})
+
+@app.route('/admin/users/<int:uid>/clear-history', methods=['POST'])
+@admin_required
+def admin_clear_history(uid):
+    db = get_db()
+    db.execute(text('DELETE FROM history WHERE user_id=:id'), {'id': uid})
+    db.commit()
+    return jsonify({'ok': True})
+
+@app.route('/admin/grant-admin', methods=['GET', 'POST'])
+@admin_required
+def grant_admin():
+    # Only the original (lowest-id) admin can access this
+    db   = get_db()
+    orig = db.execute(text("SELECT id FROM users WHERE is_admin=1 ORDER BY id ASC LIMIT 1")).fetchone()
+    if not orig or orig[0] != session['user_id']:
+        return redirect(url_for('admin'))
+    step  = request.form.get('step', '1') if request.method == 'POST' else '1'
+    uid   = request.form.get('uid', '')
+    error = None
+    non_admins = db.execute(text(
+        "SELECT id, name, email FROM users WHERE is_admin=0 ORDER BY name ASC"
+    )).mappings().fetchall()
+    non_admins = [dict(u) for u in non_admins]
+    if request.method == 'POST':
+        if step == '1':
+            if not uid:
+                error = 'Select a user.'
+            else:
+                target = db.execute(text('SELECT * FROM users WHERE id=:id AND is_admin=0'),
+                                    {'id': uid}).mappings().fetchone()
+                if not target:
+                    error = 'User not found.'
+                else:
+                    return render_template('grant_admin.html', step='2', uid=uid,
+                                           target=dict(target), non_admins=non_admins, error=None)
+        elif step == '2':
+            confirm = request.form.get('confirm', '')
+            if confirm != 'GRANT ADMIN':
+                error = 'Type exactly: GRANT ADMIN'
+            else:
+                target = db.execute(text('SELECT * FROM users WHERE id=:id AND is_admin=0'),
+                                    {'id': uid}).mappings().fetchone()
+                return render_template('grant_admin.html', step='3', uid=uid,
+                                       target=dict(target) if target else {}, non_admins=non_admins, error=None)
+        elif step == '3':
+            me = db.execute(text('SELECT * FROM users WHERE id=:id'),
+                            {'id': session['user_id']}).mappings().fetchone()
+            if not me or not check_password_hash(me['password_hash'], request.form.get('password', '')):
+                error = 'Incorrect password.'
+                target = db.execute(text('SELECT * FROM users WHERE id=:id'),
+                                    {'id': uid}).mappings().fetchone()
+                return render_template('grant_admin.html', step='3', uid=uid,
+                                       target=dict(target) if target else {}, non_admins=non_admins, error=error)
+            db.execute(text('UPDATE users SET is_admin=1, is_active=0 WHERE id=:id'), {'id': uid})
+            db.commit()
+            return redirect(url_for('admin'))
+    return render_template('grant_admin.html', step='1', uid='', target={},
+                           non_admins=non_admins, error=error)
 
 @app.route('/account/delete', methods=['GET', 'POST'])
 @login_required

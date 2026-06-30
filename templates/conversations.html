@@ -186,6 +186,12 @@ let lastCount  = 0;
 let drawerOpen = false;
 let cachedUser = null;
 
+// Auto-select from ?uid= query param
+(function(){
+  const uid = parseInt(new URLSearchParams(location.search).get('uid'));
+  if (uid) window.addEventListener('DOMContentLoaded', () => selectUser(uid));
+})();
+
 function filterUsers() {
   const q = document.getElementById('search').value.toLowerCase().trim();
   document.querySelectorAll('.user-item').forEach(el => {
