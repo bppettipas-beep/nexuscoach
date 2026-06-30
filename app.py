@@ -578,11 +578,9 @@ def send_welcome_sms(user, acfg):
         f"Their goal: {user['goal']}\n"
         f"About them: {life_ctx}\n"
         f"Tone: {tone}\n\n"
-        "Write a welcome SMS under 155 characters that:\n"
-        "1. Greets them by first name\n"
-        "2. Briefly acknowledges their specific goal\n"
-        "3. Ends with ONE short engaging question to start the conversation\n"
-        "No hashtags, no quotes, just the message text."
+        "Skip any welcome or greeting. Jump straight into coaching — ask them one sharp, "
+        "personal question about their goal or what's been holding them back. "
+        "Under 155 characters. No hashtags, no quotes, just the message text."
     )
     try:
         client = anthropic.Anthropic(api_key=acfg['claude_key'])
@@ -824,6 +822,11 @@ def verify():
             db.commit()
             fresh = db.execute(text('SELECT * FROM users WHERE id=:id'),
                                {'id': session['user_id']}).mappings().fetchone()
+            fresh = db.execute(text('SELECT * FROM users WHERE id=:id'),
+                               {'id': session['user_id']}).mappings().fetchone()
+            if fresh:
+                acfg = get_admin_cfg()
+                send_welcome_sms(dict(fresh), acfg)
             return redirect(url_for('dashboard'))
         else:
             error = 'Incorrect code. Check your texts and try again.'
