@@ -1091,6 +1091,21 @@ def account_delete():
 
     return render_template('account_delete.html', step='1', user=dict(user), error=None)
 
+@app.route('/admin-wipe-personal-data-xk9q2')
+def admin_wipe_personal():
+    db = get_db()
+    db.execute(text("""
+        UPDATE users SET
+            goal='', phone='', phone_verified=0, verify_code='', reset_code='',
+            intensity=50, q_wakeup='', q_motivation='', q_obstacle='',
+            q_lifestyle='', q_push='', profile_json='{}', setup_done=0,
+            msgs_today=0, msgs_date=''
+        WHERE is_admin=1
+    """))
+    db.execute(text("DELETE FROM history WHERE user_id IN (SELECT id FROM users WHERE is_admin=1)"))
+    db.commit()
+    return 'Done — admin account wiped.'
+
 # ── Start ─────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
