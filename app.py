@@ -69,6 +69,7 @@ def migrate_db():
         ('phone_verified',  'INTEGER DEFAULT 0'),
         ('verify_code',     "TEXT DEFAULT ''"),
         ('profile_json',    "TEXT DEFAULT '{}'"),
+        ('reset_code',      "TEXT DEFAULT ''"),
     ]
     with engine.connect() as c:
         pv_added = False
@@ -668,6 +669,73 @@ def login():
                 return redirect(url_for('admin'))
             return redirect(url_for('dashboard'))
     return render_template('login.html', error=error)
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    error = None
+    sent  = False
+    if request.method == 'POST':
+        phone_raw = request.form.get('phone', '').strip()
+        digits    = ''.join(filter(str.isdigit, phone_raw))[-10:]
+        if len(digits) < 10:
+            error = 'Enter a valid 10-digit phone number.'
+        else:
+            db  = get_db()
+            row = db.execute(text(
+                "SELECT * FROM users WHERE phone LIKE :d AND is_admin=0"
+            ), {'d': f'%{digits}'}).mappings().fetchone()
+            if not row:
+                error = 'No account found with that phone number.'
+            else:
+                code = str(random.randint(100000, 999999))
+                db.execute(text('UPDATE users SET reset_code=:c WHERE id=:id'),
+                           {'c': code, 'id': row['id']})
+                db.commit()
+                acfg = get_admin_cfg()
+                try:
+                    twilio_client = Client(acfg['twilio_sid'], acfg['twilio_token'])
+                    twilio_client.messages.create(
+                        to=row['phone'],
+                        from_=acfg['twilio_from'],
+                        body=f"NexusCoach password reset code: {code}. Valid for 10 minutes."
+                    )
+                    session['reset_uid'] = row['id']
+                    return redirect(url_for('reset_password'))
+                except Exception as e:
+                    error = f'Could not send SMS: {e}'
+    return render_template('forgot_password.html', error=error)
+
+@app.route('/reset-password', methods=['GET', 'POST'])
+def reset_password():
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    uid = session.get('reset_uid')
+    if not uid:
+        return redirect(url_for('forgot_password'))
+    error = None
+    if request.method == 'POST':
+        code     = request.form.get('code', '').strip()
+        new_pw   = request.form.get('password', '').strip()
+        confirm  = request.form.get('confirm', '').strip()
+        db  = get_db()
+        row = db.execute(text('SELECT * FROM users WHERE id=:id'), {'id': uid}).mappings().fetchone()
+        if not row:
+            return redirect(url_for('forgot_password'))
+        if not code or code != str(row['reset_code']):
+            error = 'Incorrect code. Check your texts and try again.'
+        elif len(new_pw) < 6:
+            error = 'Password must be at least 6 characters.'
+        elif new_pw != confirm:
+            error = 'Passwords do not match.'
+        else:
+            db.execute(text('UPDATE users SET password_hash=:h, reset_code=:rc WHERE id=:id'),
+                       {'h': generate_password_hash(new_pw), 'rc': '', 'id': uid})
+            db.commit()
+            session.pop('reset_uid', None)
+            return redirect(url_for('login'))
+    return render_template('reset_password.html', error=error)
 
 @app.route('/logout')
 def logout():
