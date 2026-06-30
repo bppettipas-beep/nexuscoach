@@ -152,8 +152,9 @@ textarea.form-control{resize:vertical;min-height:80px}
     </a>
     <nav class="site-nav">
       {% if current_user %}
-        <a href="/dashboard" class="nav-link">Dashboard</a>
-        {% if current_user['is_admin'] %}
+        {% if not current_user['is_admin'] %}
+          <a href="/dashboard" class="nav-link">Dashboard</a>
+        {% else %}
           <a href="/admin" class="nav-link">Admin</a>
         {% endif %}
         <a href="/logout" class="nav-btn">Log out</a>
