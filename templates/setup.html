@@ -7,6 +7,11 @@
 .setup-header p{font-size:.92rem;color:rgba(255,255,255,.4);margin-bottom:2rem}
 .setup-form{max-width:580px;margin:0 auto;padding:0 1.5rem 3rem}
 
+.section-title{
+  font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  color:rgba(255,255,255,.25);margin-bottom:1.1rem;padding-top:.25rem;
+}
+
 .intensity-wrap{margin-top:.6rem}
 .intensity-label-row{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.55rem}
 .intensity-label-row .lbl-soft{color:#4ade80}
@@ -38,6 +43,7 @@
 .q-card:has(input:checked){border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.08)}
 .q-card input{display:none}
 .q-card-text{font-size:.83rem;font-weight:600;line-height:1.3}
+.q-card-sub{font-size:.74rem;color:rgba(255,255,255,.35);margin-top:.2rem;line-height:1.3}
 
 .hint{font-size:.76rem;color:rgba(255,255,255,.3);margin-top:.35rem}
 {% endblock %}
@@ -45,7 +51,7 @@
 {% block content %}
 <div class="setup-header">
   <h1>{{ 'Edit Your Settings' if user['setup_done'] else 'Set Up Your Coach' }}</h1>
-  <p>{{ 'Update your preferences below.' if user['setup_done'] else 'Tell NexusCoach about you so it can personalize every message.' }}</p>
+  <p>{{ 'Update your preferences below.' if user['setup_done'] else 'Tell NexusCoach about you so every message hits different.' }}</p>
 </div>
 
 <div class="setup-form">
@@ -56,7 +62,7 @@
 
     <!-- Phone -->
     <div class="card">
-      <div class="section-label">Your Phone</div>
+      <div class="section-title">Your Phone</div>
       <div class="form-group" style="margin-bottom:0">
         <label>Phone Number</label>
         <input class="form-control" type="tel" name="phone"
@@ -67,7 +73,7 @@
 
     <!-- Goal -->
     <div class="card">
-      <div class="section-label">Your Goal</div>
+      <div class="section-title">Your Goal</div>
       <div class="form-group" style="margin-bottom:0">
         <label>What are you working toward?</label>
         <textarea class="form-control" name="goal" rows="3"
@@ -78,13 +84,13 @@
 
     <!-- Intensity -->
     <div class="card">
-      <div class="section-label">Coaching Intensity</div>
+      <div class="section-title">Coaching Intensity</div>
       <div class="form-group" style="margin-bottom:0">
         <label>How hard should NexusCoach push you?</label>
         <div class="intensity-wrap">
           <div class="intensity-label-row">
             <span class="lbl-soft">Gentle &amp; supportive</span>
-            <span class="lbl-hard">Drill sergeant</span>
+            <span class="lbl-hard">Savage mode</span>
           </div>
           <input class="intensity-slider" type="range" min="0" max="100"
                  value="{{ user['intensity'] if user.get('intensity') is not none else 50 }}"
@@ -94,73 +100,226 @@
       </div>
     </div>
 
-    <!-- Life questions -->
+    <!-- Deep questions -->
     <div class="card">
-      <div class="section-label">About Your Life</div>
-      <p style="font-size:.82rem;color:rgba(255,255,255,.35);margin-bottom:1.25rem">
-        These help NexusCoach write messages that actually fit your situation.
-      </p>
+      <div class="section-title">Who You Are</div>
 
       <div class="form-group">
-        <label>What describes you best?</label>
+        <label>What describes your life right now?</label>
         <div class="q-grid">
-          {% for val, lbl in [('Student','Student'),('Working professional','9-to-5'),('Entrepreneur','Entrepreneur'),('Stay at home','Stay at home')] %}
+          {% for val, lbl, sub in [
+            ('Student','Student','School, college, or university'),
+            ('Working professional','9-to-5','Employed, grinding the week'),
+            ('Entrepreneur','Entrepreneur','Building something of your own'),
+            ('Stay at home','Stay at home','Home, family, or freelance life')
+          ] %}
           <label class="q-card">
             <input type="radio" name="q_lifestyle" value="{{ val }}"
                    {{ 'checked' if (user.get('q_lifestyle') or '') == val }}>
             <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
           </label>
           {% endfor %}
         </div>
       </div>
 
       <div class="form-group">
-        <label>What are you most focused on?</label>
+        <label>How do you honestly see yourself right now?</label>
         <div class="q-grid">
-          {% for val, lbl in [('Health and fitness','Health & fitness'),('Career and money','Career & money'),('Relationships','Relationships'),('Learning and growth','Learning & growth')] %}
+          {% for val, lbl, sub in [
+            ('Confident and capable','Confident','I back myself'),
+            ('Working on myself','Growing','Making progress day by day'),
+            ('Struggling with self-worth','Struggling','Hard to believe in myself'),
+            ('Lost and figuring it out','Lost','Not sure who I am yet')
+          ] %}
           <label class="q-card">
-            <input type="radio" name="q_motivation" value="{{ val }}"
-                   {{ 'checked' if (user.get('q_motivation') or '') == val }}>
+            <input type="radio" name="q_identity" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_identity') or '') == val }}>
             <div class="q-card-text">{{ lbl }}</div>
-          </label>
-          {% endfor %}
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Your biggest obstacle is:</label>
-        <div class="q-grid">
-          {% for val, lbl in [('Procrastination','Procrastination'),('Self-doubt','Self-doubt'),('Staying consistent','Staying consistent'),('Low energy','Low energy')] %}
-          <label class="q-card">
-            <input type="radio" name="q_obstacle" value="{{ val }}"
-                   {{ 'checked' if (user.get('q_obstacle') or '') == val }}>
-            <div class="q-card-text">{{ lbl }}</div>
-          </label>
-          {% endfor %}
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>What actually gets you moving?</label>
-        <div class="q-grid">
-          {% for val, lbl in [('Logic and facts','Logic & facts'),('Emotion and purpose','Emotion & purpose'),('Competition','Competition'),('Fear of regret','Fear of regret')] %}
-          <label class="q-card">
-            <input type="radio" name="q_push" value="{{ val }}"
-                   {{ 'checked' if (user.get('q_push') or '') == val }}>
-            <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
           </label>
           {% endfor %}
         </div>
       </div>
 
       <div class="form-group" style="margin-bottom:0">
-        <label>When do you usually wake up?</label>
+        <label>Who pushes you hardest — who are you really doing this for?</label>
         <div class="q-grid">
-          {% for val, lbl in [('Before 6am','Before 6am'),('6am to 8am','6am to 8am'),('8am to 10am','8am to 10am'),('After 10am','After 10am')] %}
+          {% for val, lbl, sub in [
+            ('My partner or girlfriend/boyfriend','My partner','Their belief in me drives me'),
+            ('My family','My family','I want to make them proud'),
+            ('Myself — no one else','Myself','I do it for me, period'),
+            ('Fear of failing or being left behind','Fear','I refuse to fall short')
+          ] %}
           <label class="q-card">
-            <input type="radio" name="q_wakeup" value="{{ val }}"
-                   {{ 'checked' if (user.get('q_wakeup') or '') == val }}>
+            <input type="radio" name="q_motivator" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_motivator') or '') == val }}>
             <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Your Goal & Patterns</div>
+
+      <div class="form-group">
+        <label>What are you most focused on improving?</label>
+        <div class="q-grid">
+          {% for val, lbl, sub in [
+            ('Health and fitness','Health & fitness','Body, energy, consistency'),
+            ('Career and money','Career & money','Income, skills, advancement'),
+            ('Relationships','Relationships','Love, family, connection'),
+            ('Learning and growth','Learning & growth','Skills, mindset, knowledge')
+          ] %}
+          <label class="q-card">
+            <input type="radio" name="q_motivation" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_motivation') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>What's your biggest obstacle — be honest?</label>
+        <div class="q-grid">
+          {% for val, lbl, sub in [
+            ('Procrastination','Procrastination','I know what to do, I just don\'t'),
+            ('Self-doubt','Self-doubt','I question if I\'m capable'),
+            ('Staying consistent','Consistency','I start strong then fall off'),
+            ('Low energy or burnout','Low energy','I\'m running on empty')
+          ] %}
+          <label class="q-card">
+            <input type="radio" name="q_obstacle" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_obstacle') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0">
+        <label>Be real — how often do you follow through on your goals?</label>
+        <div class="q-grid">
+          {% for val, lbl, sub in [
+            ('Almost always — I finish what I start','Very consistent','Rare that I quit'),
+            ('Mostly — I slip but I recover','Mostly','I get back on track'),
+            ('Often quit — it\'s a pattern I want to break','Struggle to finish','I want to change this'),
+            ('I\'ve never really stuck to anything long-term','Never stuck to anything','This is new territory for me')
+          ] %}
+          <label class="q-card">
+            <input type="radio" name="q_history" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_history') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">How You Operate</div>
+
+      <div class="form-group">
+        <label>What actually gets you moving when nothing else works?</label>
+        <div class="q-grid">
+          {% for val, lbl, sub in [
+            ('Logic and facts','Logic & facts','Show me the data and reasons'),
+            ('Emotion and purpose','Emotion & purpose','Remind me why it matters'),
+            ('Competition','Competition','I need someone to beat or prove wrong'),
+            ('Fear of regret','Fear of regret','Imagining future-me regretting this')
+          ] %}
+          <label class="q-card">
+            <input type="radio" name="q_push" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_push') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>When you're stressed or under pressure, what do you do?</label>
+        <div class="q-grid">
+          {% for val, lbl, sub in [
+            ('Push harder — stress fuels me','Grind harder','Pressure brings out my best'),
+            ('Shut down — I need space to reset','Shut down','I need quiet and distance'),
+            ('Talk it out with someone I trust','Talk it out','I process by venting'),
+            ('Exercise or some kind of physical release','Move it out','Body first, mind follows')
+          ] %}
+          <label class="q-card">
+            <input type="radio" name="q_stress" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_stress') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0">
+        <label>How are your energy levels, honestly?</label>
+        <div class="q-grid">
+          {% for val, lbl, sub in [
+            ('High — I\'m usually switched on','High energy','Ready to go most days'),
+            ('Moderate — depends on the day','Moderate','Some days great, some days not'),
+            ('Low — I\'m running on empty','Low energy','Exhausted a lot of the time'),
+            ('All over the place — totally unpredictable','Unpredictable','Peaks and crashes')
+          ] %}
+          <label class="q-card">
+            <input type="radio" name="q_energy" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_energy') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Your World</div>
+
+      <div class="form-group">
+        <label>Do the people around you support your goals?</label>
+        <div class="q-grid">
+          {% for val, lbl, sub in [
+            ('Yes — strong support system','Strong support','They push me and believe in me'),
+            ('A few people get it','Some support','One or two people understand'),
+            ('Not really — mostly on my own','Mostly solo','I do this without much backing'),
+            ('No — and it makes it harder','No support','I feel alone in this')
+          ] %}
+          <label class="q-card">
+            <input type="radio" name="q_support" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_support') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0">
+        <label>What's your deepest fear when it comes to this goal?</label>
+        <div class="q-grid">
+          {% for val, lbl, sub in [
+            ('Failing and having to start over','Failing','Putting in everything and losing'),
+            ('Being judged by people I care about','Being judged','Looking like a failure to others'),
+            ('Succeeding and still not feeling enough','Still not enough','Achieving it and still feeling empty'),
+            ('Running out of time','Running out of time','Life moves too fast and I fall behind')
+          ] %}
+          <label class="q-card">
+            <input type="radio" name="q_fear" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_fear') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
           </label>
           {% endfor %}
         </div>
@@ -169,10 +328,46 @@
 
     <!-- Schedule -->
     <div class="card">
-      <div class="section-label">Schedule</div>
-      <p style="font-size:.82rem;color:rgba(255,255,255,.35);margin-bottom:1rem">
-        NexusCoach picks your message times fresh every day based on your wake-up time and lifestyle. Just set your timezone.
-      </p>
+      <div class="section-title">Your Day</div>
+
+      <div class="form-group">
+        <label>When do you usually wake up?</label>
+        <div class="q-grid">
+          {% for val, lbl, sub in [
+            ('Before 6am','Before 6am','Early riser'),
+            ('6am to 8am','6am – 8am','Morning person'),
+            ('8am to 10am','8am – 10am','Gradual starter'),
+            ('After 10am','After 10am','Night owl')
+          ] %}
+          <label class="q-card">
+            <input type="radio" name="q_wakeup" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_wakeup') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>When do you usually go to sleep?</label>
+        <div class="q-grid">
+          {% for val, lbl, sub in [
+            ('Before 10pm','Before 10pm','Early nights'),
+            ('10pm to midnight','10pm – midnight','Average sleeper'),
+            ('Midnight to 2am','Midnight – 2am','Late nights'),
+            ('After 2am or I don\'t sleep well','After 2am','Night owl or bad sleeper')
+          ] %}
+          <label class="q-card">
+            <input type="radio" name="q_sleep" value="{{ val }}"
+                   {{ 'checked' if (user.get('q_sleep') or '') == val }}>
+            <div class="q-card-text">{{ lbl }}</div>
+            <div class="q-card-sub">{{ sub }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
       <div class="form-group" style="margin-bottom:0">
         <label>Timezone</label>
         <select class="form-control" name="tz">
@@ -188,6 +383,10 @@
     </button>
     {% if user['setup_done'] %}
     <a href="/dashboard" class="btn btn-outline btn-full" style="margin-top:.6rem">Cancel</a>
+    <a href="/account/delete" class="btn btn-outline btn-full"
+       style="margin-top:.6rem;border-color:rgba(255,80,80,.25);color:rgba(255,100,100,.6)">
+      Delete Account
+    </a>
     {% endif %}
   </form>
 </div>

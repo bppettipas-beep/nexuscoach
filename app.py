@@ -70,6 +70,14 @@ def migrate_db():
         ('verify_code',     "TEXT DEFAULT ''"),
         ('profile_json',    "TEXT DEFAULT '{}'"),
         ('reset_code',      "TEXT DEFAULT ''"),
+        ('q_motivator',     "TEXT DEFAULT ''"),
+        ('q_identity',      "TEXT DEFAULT ''"),
+        ('q_history',       "TEXT DEFAULT ''"),
+        ('q_stress',        "TEXT DEFAULT ''"),
+        ('q_energy',        "TEXT DEFAULT ''"),
+        ('q_sleep',         "TEXT DEFAULT ''"),
+        ('q_support',       "TEXT DEFAULT ''"),
+        ('q_fear',          "TEXT DEFAULT ''"),
     ]
     with engine.connect() as c:
         pv_added = False
@@ -477,10 +485,18 @@ def intensity_tone(level):
 def _life_ctx(user):
     parts = []
     if user.get('q_lifestyle'):  parts.append(f"lifestyle: {user['q_lifestyle']}")
-    if user.get('q_motivation'): parts.append(f"motivated by: {user['q_motivation']}")
+    if user.get('q_motivation'): parts.append(f"primary focus: {user['q_motivation']}")
     if user.get('q_obstacle'):   parts.append(f"biggest obstacle: {user['q_obstacle']}")
     if user.get('q_push'):       parts.append(f"responds best to: {user['q_push']}")
-    if user.get('q_wakeup'):     parts.append(f"usually wakes: {user['q_wakeup']}")
+    if user.get('q_wakeup'):     parts.append(f"wakes up: {user['q_wakeup']}")
+    if user.get('q_sleep'):      parts.append(f"sleeps: {user['q_sleep']}")
+    if user.get('q_motivator'):  parts.append(f"motivated by: {user['q_motivator']}")
+    if user.get('q_identity'):   parts.append(f"self-image: {user['q_identity']}")
+    if user.get('q_history'):    parts.append(f"follow-through track record: {user['q_history']}")
+    if user.get('q_stress'):     parts.append(f"handles stress by: {user['q_stress']}")
+    if user.get('q_energy'):     parts.append(f"energy levels: {user['q_energy']}")
+    if user.get('q_support'):    parts.append(f"support system: {user['q_support']}")
+    if user.get('q_fear'):       parts.append(f"deepest fear: {user['q_fear']}")
     return ' | '.join(parts) if parts else ''
 
 def _recent_history(user_id, limit=15):
@@ -761,7 +777,7 @@ def signup():
             error = 'Password must be at least 6 characters.'
         else:
             db = get_db()
-            if db.execute(text('SELECT id FROM users WHERE email=:e'), {'e': email}).fetchone():
+            if db.execute(text('SELECT id FROM users WHERE email=:e AND is_admin=0'), {'e': email}).fetchone():
                 error = 'An account with that email already exists.'
             else:
                 is_first = not db.execute(text('SELECT id FROM users LIMIT 1')).fetchone()
@@ -919,7 +935,7 @@ def setup():
         # Duplicate phone check (compare by last 10 digits to handle format differences)
         if new_digits:
             dupe = db.execute(text(
-                "SELECT id FROM users WHERE phone LIKE :p AND id!=:id"
+                "SELECT id FROM users WHERE phone LIKE :p AND id!=:id AND is_admin=0"
             ), {'p': f'%{new_digits}', 'id': session['user_id']}).fetchone()
             if dupe:
                 error = 'That phone number is already registered to another account.'
@@ -934,15 +950,22 @@ def setup():
             UPDATE users SET phone=:ph, goal=:go, intensity=:iv,
                              q_wakeup=:qw, q_motivation=:qm, q_obstacle=:qo,
                              q_lifestyle=:ql, q_push=:qp,
+                             q_motivator=:qmot, q_identity=:qid, q_history=:qhist,
+                             q_stress=:qstr, q_energy=:qen, q_sleep=:qslp,
+                             q_support=:qsup, q_fear=:qfear,
                              times=:ti, freq=:fr, tz=:tz, setup_done=1,
                              phone_verified=:pv
             WHERE id=:id
         """), {
             'ph': raw_phone, 'go': f.get('goal','').strip(),
             'iv': int(f.get('intensity', 50)),
-            'qw': f.get('q_wakeup',''),   'qm': f.get('q_motivation',''),
-            'qo': f.get('q_obstacle',''), 'ql': f.get('q_lifestyle',''),
+            'qw': f.get('q_wakeup',''),    'qm': f.get('q_motivation',''),
+            'qo': f.get('q_obstacle',''),  'ql': f.get('q_lifestyle',''),
             'qp': f.get('q_push',''),
+            'qmot':  f.get('q_motivator',''), 'qid':  f.get('q_identity',''),
+            'qhist': f.get('q_history',''),   'qstr': f.get('q_stress',''),
+            'qen':   f.get('q_energy',''),    'qslp': f.get('q_sleep',''),
+            'qsup':  f.get('q_support',''),   'qfear': f.get('q_fear',''),
             'ti': json.dumps(times or ['08:00']), 'fr': f.get('freq','daily'),
             'tz': f.get('tz','US/Eastern'),
             'pv': 0 if needs_verify else (1 if was_verified else 0),
