@@ -297,6 +297,11 @@
           <tr class="detail-row" id="detail-{{ u.id }}">
             <td colspan="6" style="padding:0">
               <div class="detail-inner">
+                {% if u.is_admin %}
+                <div style="font-size:.85rem;color:rgba(255,255,255,.35);padding:.25rem 0">
+                  Admin account — no profile data tracked.
+                </div>
+                {% else %}
                 <div class="detail-grid">
                   <div class="dg-item">
                     <div class="dg-label">Goal</div>
@@ -334,6 +339,7 @@
                 <div style="margin-top:.85rem">
                   <a href="/admin/conversations?uid={{ u.id }}" class="btn btn-outline btn-sm">View Full Transcript</a>
                 </div>
+                {% endif %}
               </div>
             </td>
           </tr>

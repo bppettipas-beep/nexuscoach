@@ -482,6 +482,12 @@ def intensity_tone(level):
     else:
         return "maximum intensity. Absolute savage mode. Call them a fucking piece of shit. Tell them they are wasting their fucking life, that they are a lazy piece of shit who makes excuse after excuse, that everyone around them is disappointed, and that they need to get their fucking shit together RIGHT NOW. Be viciously personal — attack their laziness, their weakness, every pathetic excuse they make. Use fuck, shit, fucking, goddamn, piece of shit freely. Zero mercy, zero softness."
 
+def _qval(f, name):
+    val = f.get(name, '').strip()
+    if val == '__other__':
+        val = f.get(name + '_other', '').strip()
+    return val
+
 def _life_ctx(user):
     parts = []
     if user.get('q_lifestyle'):  parts.append(f"lifestyle: {user['q_lifestyle']}")
@@ -959,13 +965,13 @@ def setup():
         """), {
             'ph': raw_phone, 'go': f.get('goal','').strip(),
             'iv': int(f.get('intensity', 50)),
-            'qw': f.get('q_wakeup',''),    'qm': f.get('q_motivation',''),
-            'qo': f.get('q_obstacle',''),  'ql': f.get('q_lifestyle',''),
-            'qp': f.get('q_push',''),
-            'qmot':  f.get('q_motivator',''), 'qid':  f.get('q_identity',''),
-            'qhist': f.get('q_history',''),   'qstr': f.get('q_stress',''),
-            'qen':   f.get('q_energy',''),    'qslp': f.get('q_sleep',''),
-            'qsup':  f.get('q_support',''),   'qfear': f.get('q_fear',''),
+            'qw': _qval(f,'q_wakeup'),    'qm': _qval(f,'q_motivation'),
+            'qo': _qval(f,'q_obstacle'),  'ql': _qval(f,'q_lifestyle'),
+            'qp': _qval(f,'q_push'),
+            'qmot':  _qval(f,'q_motivator'), 'qid':  _qval(f,'q_identity'),
+            'qhist': _qval(f,'q_history'),   'qstr': _qval(f,'q_stress'),
+            'qen':   _qval(f,'q_energy'),    'qslp': _qval(f,'q_sleep'),
+            'qsup':  _qval(f,'q_support'),   'qfear': _qval(f,'q_fear'),
             'ti': json.dumps(times or ['08:00']), 'fr': f.get('freq','daily'),
             'tz': f.get('tz','US/Eastern'),
             'pv': 0 if needs_verify else (1 if was_verified else 0),
