@@ -689,7 +689,7 @@ def sms_webhook():
     digits = ''.join(filter(str.isdigit, from_number))[-10:]
     with _conn() as c:
         row = c.execute(text(
-            'SELECT * FROM users WHERE phone LIKE :d AND is_active=1 AND is_admin=0'
+            'SELECT * FROM users WHERE phone LIKE :d AND is_admin=0'
         ), {'d': f'%{digits}'}).mappings().fetchone()
         user = dict(row) if row else None
 
@@ -698,6 +698,9 @@ def sms_webhook():
 
     if not user:
         return twiml("Hey! I don't recognize this number. Sign up at nexuscoach.app to get started.")
+
+    if not user.get('is_active'):
+        return twiml("Your account is pending activation. You'll get a message from us as soon as you're approved — hang tight!")
 
     # Media messages (images, video, voice, etc.) — deflect creatively
     if num_media > 0 or not body:
@@ -821,9 +824,6 @@ def verify():
             db.commit()
             fresh = db.execute(text('SELECT * FROM users WHERE id=:id'),
                                {'id': session['user_id']}).mappings().fetchone()
-            if fresh:
-                acfg = get_admin_cfg()
-                send_welcome_sms(dict(fresh), acfg)
             return redirect(url_for('dashboard'))
         else:
             error = 'Incorrect code. Check your texts and try again.'
@@ -1151,6 +1151,10 @@ def activate_user(uid):
     db = get_db()
     db.execute(text('UPDATE users SET is_active=1 WHERE id=:id'), {'id': uid})
     db.commit()
+    user = db.execute(text('SELECT * FROM users WHERE id=:id'), {'id': uid}).mappings().fetchone()
+    if user:
+        acfg = get_admin_cfg()
+        send_welcome_sms(dict(user), acfg)
     return redirect(url_for('admin'))
 
 @app.route('/admin/users/<int:uid>/deactivate', methods=['POST'])
