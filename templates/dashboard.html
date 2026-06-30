@@ -153,7 +153,8 @@
     </div>
   </div>
 
-  <!-- Message history -->
+  <!-- Message history (not shown for admins) -->
+  {% if not user['is_admin'] %}
   <div class="card">
     <div class="section-label">Recent Messages</div>
     {% if hist %}
@@ -169,6 +170,7 @@
     <div class="hist-empty">No messages yet — hit "Send Test Now" to try it out.</div>
     {% endif %}
   </div>
+  {% endif %}
 
 </div>
 {% endblock %}
